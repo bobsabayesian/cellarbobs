@@ -22,23 +22,47 @@ Storages have an optional capacity (one bottle per slot). Lists show "18 / 24" f
 
 Built, with beginner and advanced formats as editable files in `PARTY_FORMATS_DIR`. See `apps/web/docs/features/parties.md` (Tasting formats). Design reference: [`roadmap/tasting-format-beginner.json`](roadmap/tasting-format-beginner.json) and [`roadmap/tasting-format-advanced.json`](roadmap/tasting-format-advanced.json).
 
-## Separate cellars per user
+## Family access: one database, configurable views
 
-**Problem:** accounts share one cellar. The only role difference is that admins manage users and application settings (`apps/backend/src/routes/users.routes.ts`, `settings.routes.ts`). Bottles, wines, storages and locations have no owner, so anyone you add sees and can change everything. Only tasting notes (`authorId`), images (`createdBy`) and party hosts (`hostUserId`) record a user.
+**Goal:** one database for the family. The admin decides which users see which storages, parties and links. Nothing is commercial, so there are no tenants or per-user databases.
 
-**Plan:**
+**Problem today:** every account sees and changes everything. Only tasting notes (`authorId`), images (`createdBy`) and party hosts (`hostUserId`) record a user.
 
-- **Owned vs shared:** bottles, storages and locations get an owner (`ownerId` → `user.id`). Wines, vintages, winemakers, grapes, regions and countries stay a shared catalogue, so two people with the same wine don't duplicate it.
-- **Scoping:** every bottle, storage and location list, count and detail is scoped to the logged-in user, along with the dashboard, Pending, bottle counts on wine and vintage pages, cellar value, and storage capacity once that exists. Reading or changing someone else's bottle returns 404.
-- **Parties:** a host pours only their own bottles. Guest bottles become the host's. Palate stats are already per host.
-- **Imports:** the CellarTracker importer takes the owner as an argument (`--owner <email>`).
-- **MCP:** the server has no authentication, so it can't tell users apart. It needs a per-user token or an owner setting before multi-user is safe there.
-- **Migration:** existing bottles, storages and locations go to the first admin, so nothing changes for the current cellar.
-- **Open questions:**
-  - Should a household be able to share one cellar between several users ("members of a cellar") instead of strictly one owner?
-  - Do admins see every cellar, or only their own?
-- **Size:** large. It touches nearly every backend query plus the web and mobile lists, so it needs its own plan and a thorough test pass, including Postgres and MySQL.
-- **Stopgap if needed sooner:** a second CellarBoss instance with its own database and hostname on the same tunnel.
+### Rules
+
+- **Access hangs off storages.** A new `storageAccess(storageId, userId, level)` table, with level `view` or `edit` and one row per user and storage.
+  - Access to a storage covers everything under it, so granting a rack grants its shelves. A user granted only a shelf sees it, with its path starting at the shelf they were granted.
+  - Whoever creates a storage gets `edit` on it automatically.
+  - A bottle follows its storage. `view` means read-only. `edit` means they can add, edit, move, change the status of and delete bottles there. Moving a bottle needs `edit` on both the source and the destination.
+  - Locations show up when a visible storage is in them, or the user created them.
+- **The admin sees and edits everything.** Grants only limit everyone else. The admin manages access.
+- **Bottles with no storage** (ordered or pending, party guest bottles, imported bottles with no location): each user gets a personal storage ("<name>'s unsorted"), created on first need and visible only to them and the admin. Those bottles go there instead of having no storage, and Pending's "receive into storage" moves them out. The migration puts existing storage-less bottles in the admin's personal storage.
+- **Catalog** (wines, vintages, winemakers, grapes, regions, countries) stays one shared set. A user sees a record when any of these is true:
+  - they can see at least one bottle of it
+  - they created it (new `createdBy` column, empty on existing rows)
+  - they wrote a tasting note on it
+
+  When someone adds a record that already exists but is hidden from them (for example "Ridge"), the app reuses the existing record instead of failing on a duplicate.
+
+- **Tasting notes are shared:** everyone who can see a vintage sees all its notes. Only the author edits a note, and the admin can edit any. View-only users can still write their own notes.
+- **Parties and links** get their own access tables (`partyAccess`, `shareAccess`, same levels). The creator has `edit` automatically, so the admin can add a co-host. A link only shows bottles the link's creator can see, checked each time it's opened. Marks only apply to those bottles.
+- **MCP** has no login, so it stays admin-view and localhost-only. This is noted in the docs.
+- **Existing data:** all current storages, parties and links go to the admin. Other accounts start with nothing until assigned.
+
+### Steps (each can ship on its own)
+
+1. **Storage access and bottle scoping.** Migration with `storageAccess` and personal storages. One backend helper, `visibleStorages(user)`, applied to every query that touches bottles or storages: bottles, storages and locations, vintage and wine embedded counts, dashboard and cellar value, Pending, Consumed, capacity, import and the receive and move pickers. Write checks (view vs edit) on bottle and storage mutations. The admin screen assigns each user None, View or Edit per storage, as a tree. It's reachable from the Users page and from each storage's "Who has access".
+2. **Catalog visibility.** `createdBy` on the catalog tables, the visibility rule above in the list and detail endpoints, and reuse of hidden duplicates on create.
+3. **Parties and links.** The access tables, their admin screens, and links limited to the creator's view.
+
+### Testing
+
+A backend test with at least two users and a shared and a private storage should check, for every list and detail endpoint, that a user sees only their own and shared storages. The same test should check that view-only users can't change anything and that moving between storages needs `edit` on both. Also test the catalog rule (the "created it" case and the hidden-duplicate case) and that a link from one user never shows another user's bottles. Run it on SQLite, and on Postgres and MySQL where available.
+
+### Open details
+
+- Personal storage naming and whether it appears in storage lists (proposed: yes, marked as personal, hidden from other users).
+- Whether the admin can reassign a user's personal storage contents when removing a user.
 
 ## Smaller follow-ups noted along the way
 
