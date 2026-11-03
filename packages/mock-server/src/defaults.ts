@@ -64,6 +64,8 @@ export const defaultState: MockState = {
       storageId: 2,
       status: "stored",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
   ],
   settings: [

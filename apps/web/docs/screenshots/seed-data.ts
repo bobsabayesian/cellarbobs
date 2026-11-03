@@ -155,6 +155,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 5,
       status: "stored",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 2,
@@ -164,6 +166,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 5,
       status: "stored",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 3,
@@ -173,6 +177,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 6,
       status: "stored",
       size: "magnum",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 4,
@@ -182,6 +188,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 7,
       status: "stored",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 5,
@@ -191,6 +199,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 8,
       status: "drunk",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 6,
@@ -200,6 +210,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 5,
       status: "stored",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 7,
@@ -209,6 +221,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 9,
       status: "stored",
       size: "magnum",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 8,
@@ -218,6 +232,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 6,
       status: "stored",
       size: "half",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 9,
@@ -227,6 +243,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 7,
       status: "stored",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 10,
@@ -236,6 +254,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 9,
       status: "stored",
       size: "jeroboam",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 11,
@@ -245,6 +265,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 5,
       status: "drunk",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
     {
       id: 12,
@@ -254,6 +276,8 @@ export const docsSeedData: Omit<MockState, "session"> = {
       storageId: 8,
       status: "stored",
       size: "standard",
+      consumedDate: null,
+      consumedNote: null,
     },
   ],
   tastingNotes: [

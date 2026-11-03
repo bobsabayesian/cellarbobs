@@ -63,6 +63,8 @@ function buildDashboardState() {
         storageId: 1,
         status: "stored",
         size: "standard",
+        consumedDate: null,
+        consumedNote: null,
       },
       {
         id: 2,
@@ -72,6 +74,8 @@ function buildDashboardState() {
         storageId: 1,
         status: "stored",
         size: "standard",
+        consumedDate: null,
+        consumedNote: null,
       },
       {
         id: 3,
@@ -81,6 +85,8 @@ function buildDashboardState() {
         storageId: 1,
         status: "stored",
         size: "standard",
+        consumedDate: null,
+        consumedNote: null,
       },
       {
         id: 4,
@@ -90,6 +96,8 @@ function buildDashboardState() {
         storageId: 1,
         status: "stored",
         size: "standard",
+        consumedDate: null,
+        consumedNote: null,
       },
       {
         id: 5,
@@ -99,6 +107,8 @@ function buildDashboardState() {
         storageId: 1,
         status: "drunk",
         size: "standard",
+        consumedDate: null,
+        consumedNote: null,
       },
     ] as Bottle[],
     tastingNotes: [
@@ -213,6 +223,8 @@ test.describe("Dashboard page", () => {
           storageId: null,
           status,
           size: "standard",
+          consumedDate: null,
+          consumedNote: null,
         },
       ];
       await setState(state);

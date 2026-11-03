@@ -110,6 +110,65 @@ describe("Bottle API", () => {
         expect(data).toHaveProperty("id");
         expect(data.purchasePrice).toBe(50.0);
         expect(data.status).toBe("stored");
+        expect(data.consumedDate).toBeNull();
+        expect(data.consumedNote).toBeNull();
+      });
+
+      it("stores consumed date and note", async () => {
+        const res = await app.request("/bottle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            purchaseDate: "2020-03-01",
+            purchasePrice: 30,
+            vintageId: testVintageId,
+            storageId: null,
+            status: "drunk",
+            size: "standard",
+            consumedDate: "2024-12-25",
+            consumedNote: "Christmas dinner",
+          }),
+        });
+        expect(res.status).toBe(201);
+        const created = await res.json();
+        expect(created.consumedDate).toBe("2024-12-25");
+        expect(created.consumedNote).toBe("Christmas dinner");
+
+        const updateRes = await app.request(`/bottle/${created.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "stored" }),
+        });
+        expect(updateRes.status).toBe(200);
+        const updated = await updateRes.json();
+        // Fields not sent in a partial update are left alone
+        expect(updated.consumedDate).toBe("2024-12-25");
+
+        const clearRes = await app.request(`/bottle/${created.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ consumedDate: null, consumedNote: null }),
+        });
+        const cleared = await clearRes.json();
+        expect(cleared.consumedDate).toBeNull();
+        expect(cleared.consumedNote).toBeNull();
+      });
+
+      it("rejects an invalid consumed date", async () => {
+        const res = await app.request("/bottle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            purchaseDate: "2024-01-01",
+            purchasePrice: 50,
+            vintageId: testVintageId,
+            storageId: null,
+            status: "drunk",
+            size: "standard",
+            consumedDate: "last tuesday",
+          }),
+        });
+        expect(res.status).toBe(400);
       });
     });
 

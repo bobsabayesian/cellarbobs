@@ -20,7 +20,21 @@ export const createBottleSchema = z.object({
     .describe("ID of the storage location, or null if not stored"),
   status: z.enum(BOTTLE_STATUSES).describe("Current status of the bottle"),
   size: z.enum(BOTTLE_SIZES).describe("Size of the bottle"),
+  consumedDate: z.iso
+    .date()
+    .nullable()
+    .optional()
+    .describe("Date the bottle was drunk, sold or given away (ISO date)"),
+  consumedNote: z
+    .string()
+    .max(2000)
+    .nullable()
+    .optional()
+    .describe("Note about how the bottle left the cellar"),
 });
+
+const emptyToNull = (val: unknown) =>
+  val === "" || val === undefined ? null : val;
 
 /**
  * Per-field validators for bottle forms. These accept string inputs (as produced
@@ -34,6 +48,8 @@ export const bottleFormValidators = {
   storageId: nullableId(),
   status: z.enum(BOTTLE_STATUSES),
   size: z.enum(BOTTLE_SIZES),
+  consumedDate: z.preprocess(emptyToNull, z.iso.date().nullable()),
+  consumedNote: z.preprocess(emptyToNull, z.string().max(2000).nullable()),
 } as const;
 
 export const updateBottleSchema = createBottleSchema

@@ -89,6 +89,14 @@ export const vintageDetailResponseSchema = vintageResponseSchema.extend({
 
 export const bottleResponseSchema = createBottleSchema.extend({
   id: z.number().describe("Unique identifier"),
+  consumedDate: z
+    .string()
+    .nullable()
+    .describe("Date the bottle was drunk, sold or given away, or null"),
+  consumedNote: z
+    .string()
+    .nullable()
+    .describe("Note about how the bottle left the cellar, or null"),
 });
 
 export const bottleCountsResponseSchema = z.object({

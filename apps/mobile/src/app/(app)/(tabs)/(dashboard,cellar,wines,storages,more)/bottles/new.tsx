@@ -29,6 +29,8 @@ const defaultData: BottleCreateData = {
   storageId: null,
   status: "ordered",
   size: "standard",
+  consumedDate: null,
+  consumedNote: null,
   quantity: 1,
 };
 

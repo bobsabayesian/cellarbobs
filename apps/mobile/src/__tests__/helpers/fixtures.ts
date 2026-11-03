@@ -101,6 +101,8 @@ export const bottles: Bottle[] = [
     storageId: 1,
     status: "stored",
     size: "standard",
+    consumedDate: null,
+    consumedNote: null,
   },
   {
     id: 2,
@@ -110,6 +112,8 @@ export const bottles: Bottle[] = [
     storageId: 1,
     status: "stored",
     size: "standard",
+    consumedDate: null,
+    consumedNote: null,
   },
   {
     id: 3,
@@ -119,6 +123,8 @@ export const bottles: Bottle[] = [
     storageId: 2,
     status: "stored",
     size: "standard",
+    consumedDate: null,
+    consumedNote: null,
   },
   {
     id: 4,
@@ -128,6 +134,8 @@ export const bottles: Bottle[] = [
     storageId: 2,
     status: "stored",
     size: "standard",
+    consumedDate: null,
+    consumedNote: null,
   },
   {
     id: 5,
@@ -137,6 +145,8 @@ export const bottles: Bottle[] = [
     storageId: null,
     status: "drunk",
     size: "standard",
+    consumedDate: null,
+    consumedNote: null,
   },
   {
     id: 6,
@@ -146,6 +156,8 @@ export const bottles: Bottle[] = [
     storageId: 1,
     status: "stored",
     size: "magnum",
+    consumedDate: null,
+    consumedNote: null,
   },
 ];
 

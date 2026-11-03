@@ -42,7 +42,12 @@ export function registerBottleRoutes(app: Hono, state: MockState) {
     if (!result.success) {
       return c.json({ error: result.error.issues }, 400);
     }
-    const bottle = { id: nextId(state.bottles), ...result.data };
+    const bottle = {
+      id: nextId(state.bottles),
+      consumedDate: null,
+      consumedNote: null,
+      ...result.data,
+    };
     state.bottles.push(bottle);
     return c.json(bottle, 201);
   });

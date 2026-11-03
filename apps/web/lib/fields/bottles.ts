@@ -59,6 +59,18 @@ export const bottleFields: FieldConfig<Bottle>[] = [
     })),
     validator: bottleFormValidators.size,
   },
+  {
+    key: "consumedDate",
+    label: "Consumed Date",
+    type: "date",
+    validator: bottleFormValidators.consumedDate,
+  },
+  {
+    key: "consumedNote",
+    label: "Consumed Note",
+    type: "textarea",
+    validator: bottleFormValidators.consumedNote,
+  },
 ];
 
 export const bottleCreateFields: FieldConfig<BottleFormData>[] = [

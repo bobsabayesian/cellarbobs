@@ -46,6 +46,8 @@ function NewBottleForm() {
     storageId: null,
     status: "ordered",
     size: "standard",
+    consumedDate: null,
+    consumedNote: null,
     quantity: 1,
   };
 

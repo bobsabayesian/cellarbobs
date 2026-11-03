@@ -38,6 +38,8 @@ const shelfBottle: Bottle = {
   storageId: 3,
   status: "stored",
   size: "standard",
+  consumedDate: null,
+  consumedNote: null,
 };
 
 describe("ViewStorageScreen", () => {
