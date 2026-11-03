@@ -67,6 +67,7 @@ export async function runMigrations(db: Kysely<Database>): Promise<void> {
 export async function cleanDatabase(db: Kysely<Database>): Promise<void> {
   const tables = [
     "storageAccess",
+    "catalogSeen",
     "shareMark",
     "shareGuest",
     "shareLink",

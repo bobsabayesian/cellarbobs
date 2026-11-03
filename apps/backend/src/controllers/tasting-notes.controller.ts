@@ -1,4 +1,6 @@
 import { db } from "@utils/database.js";
+import { AccessError, currentViewer, invalidateAccess } from "@utils/access.js";
+import { catalogIds, requireCatalog } from "@utils/catalog-access.js";
 import { insertReturning } from "@utils/query-helpers.js";
 import type {
   CreateTastingNote,
@@ -29,6 +31,25 @@ function baseQuery() {
       "tastingNote.answers",
       "user.name as author",
     ]);
+}
+
+/** Notes are shared: everyone sees the notes on vintages they can see. */
+async function scopedQuery() {
+  const ids = await catalogIds("vintage");
+  const query = baseQuery();
+  return ids ? query.where("tastingNote.vintageId", "in", ids) : query;
+}
+
+/** Only the author (or the admin) changes a note. */
+async function requireAuthor(id: number) {
+  const row = await db
+    .selectFrom("tastingNote")
+    .select("authorId")
+    .where("id", "=", id)
+    .executeTakeFirst();
+  const viewer = currentViewer();
+  if (row && viewer && !viewer.isAdmin && row.authorId !== viewer.id)
+    throw new AccessError("Only the author can change a note", 403);
 }
 
 type Row = Awaited<ReturnType<ReturnType<typeof baseQuery>["execute"]>>[number];
@@ -67,18 +88,24 @@ function checkAnswers(
 }
 
 export async function list() {
-  return (await baseQuery().execute()).map(toNote);
+  return (await (await scopedQuery()).execute()).map(toNote);
 }
 
 export async function getByVintageId(vintageId: number) {
   return (
-    await baseQuery().where("tastingNote.vintageId", "=", vintageId).execute()
+    await (
+      await scopedQuery()
+    )
+      .where("tastingNote.vintageId", "=", vintageId)
+      .execute()
   ).map(toNote);
 }
 
 export async function getByWineId(wineId: number) {
   return (
-    await baseQuery()
+    await (
+      await scopedQuery()
+    )
       .innerJoin("vintage", "vintage.id", "tastingNote.vintageId")
       .where("vintage.wineId", "=", wineId)
       .execute()
@@ -86,7 +113,9 @@ export async function getByWineId(wineId: number) {
 }
 
 export async function getById(id: number) {
-  const row = await baseQuery()
+  const row = await (
+    await scopedQuery()
+  )
     .where("tastingNote.id", "=", id)
     .executeTakeFirst();
   return row ? toNote(row) : undefined;
@@ -95,12 +124,15 @@ export async function getById(id: number) {
 export async function create(
   data: CreateTastingNote & { authorId: string; date: string },
 ) {
+  await requireCatalog("vintage", data.vintageId);
   const { answers, ...rest } = data;
   const inserted = await insertReturning(db, "tastingNote", {
     ...rest,
     format: data.format ?? null,
     answers: checkAnswers(data.format, answers),
   });
+  // The author now sees this vintage through their note.
+  invalidateAccess();
   return (await getById(inserted.id)) as NonNullable<
     Awaited<ReturnType<typeof getById>>
   >;
@@ -109,6 +141,7 @@ export async function create(
 // Uses manual update + getById (not updateReturning) because the response
 // includes a JOIN to resolve the author name from the user table.
 export async function update(id: number, data: UpdateTastingNote) {
+  await requireAuthor(id);
   const { answers, ...rest } = data;
   const set: Record<string, unknown> = { ...rest };
   if (answers !== undefined) {
@@ -130,6 +163,7 @@ export async function update(id: number, data: UpdateTastingNote) {
 }
 
 export async function remove(id: number) {
+  await requireAuthor(id);
   return await db
     .deleteFrom("tastingNote")
     .where("id", "=", id)

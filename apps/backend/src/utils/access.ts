@@ -27,12 +27,16 @@ export class AccessError extends Error {
 }
 
 type Levels = Map<number, AccessLevel>;
-type Store = { viewer: Viewer; levels?: Promise<Levels> };
+type Store = {
+  viewer: Viewer;
+  levels?: Promise<Levels>;
+  memo: Map<string, Promise<unknown>>;
+};
 
 const als = new AsyncLocalStorage<Store>();
 
 export function runAsViewer<T>(viewer: Viewer, fn: () => Promise<T>) {
-  return als.run({ viewer }, fn);
+  return als.run({ viewer, memo: new Map() }, fn);
 }
 
 /** The signed-in user for this request, or undefined outside a request. */
@@ -101,7 +105,19 @@ async function viewerLevels(): Promise<Levels | null> {
 /** Call after changing grants or storages mid-request. */
 export function invalidateAccess() {
   const store = als.getStore();
-  if (store) store.levels = undefined;
+  if (store) {
+    store.levels = undefined;
+    store.memo.clear();
+  }
+}
+
+/** Computes something once per request (cleared by invalidateAccess). */
+export function requestMemo<T>(key: string, compute: () => Promise<T>) {
+  const store = als.getStore();
+  if (!store) return compute();
+  let hit = store.memo.get(key) as Promise<T> | undefined;
+  if (!hit) store.memo.set(key, (hit = compute()));
+  return hit;
 }
 
 // An empty IN () list isn't valid on every database; -1 matches no storage.

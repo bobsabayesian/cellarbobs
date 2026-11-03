@@ -1,25 +1,25 @@
 import { db } from "@utils/database.js";
+import { catalogIds } from "@utils/catalog-access.js";
 import { insertReturning, updateReturning } from "@utils/query-helpers.js";
 import type { CreateWineGrape, UpdateWineGrape } from "@cellarboss/types";
 
+// Grape links of wines the user can see.
+async function scoped() {
+  const ids = await catalogIds("wine");
+  const query = db.selectFrom("winegrape").selectAll();
+  return ids ? query.where("wineId", "in", ids) : query;
+}
+
 export async function list() {
-  return await db.selectFrom("winegrape").selectAll().execute();
+  return await (await scoped()).execute();
 }
 
 export async function getById(id: number) {
-  return await db
-    .selectFrom("winegrape")
-    .selectAll()
-    .where("id", "=", id)
-    .executeTakeFirst();
+  return await (await scoped()).where("id", "=", id).executeTakeFirst();
 }
 
 export async function getByWineId(wineId: number) {
-  return await db
-    .selectFrom("winegrape")
-    .selectAll()
-    .where("wineId", "=", wineId)
-    .execute();
+  return await (await scoped()).where("wineId", "=", wineId).execute();
 }
 
 export async function create(data: CreateWineGrape) {

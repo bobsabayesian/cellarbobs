@@ -1,5 +1,6 @@
 import { db } from "@utils/database.js";
 import { visibleStorageIds } from "@utils/access.js";
+import { catalogIds } from "@utils/catalog-access.js";
 import { BOTTLE_STATUSES } from "@cellarboss/validators";
 import type { BottleCounts } from "@cellarboss/types";
 
@@ -54,6 +55,8 @@ export async function tastingNoteCountsByVintageIds(
     .select((eb) => ["vintageId", eb.fn.count("id").as("count")])
     .groupBy("vintageId");
   if (vintageIds) query = query.where("vintageId", "in", vintageIds);
+  const visible = await catalogIds("vintage");
+  if (visible) query = query.where("vintageId", "in", visible);
 
   for (const row of await query.execute()) {
     result.set(row.vintageId, Number(row.count));
@@ -80,6 +83,8 @@ export async function tastingNoteCountsByWineIds(
     ])
     .groupBy("vintage.wineId");
   if (wineIds) query = query.where("vintage.wineId", "in", wineIds);
+  const visible = await catalogIds("vintage");
+  if (visible) query = query.where("tastingNote.vintageId", "in", visible);
 
   for (const row of await query.execute()) {
     result.set(row.wineId, Number(row.count));

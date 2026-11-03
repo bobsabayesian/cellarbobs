@@ -21,16 +21,30 @@ Bottles with no storage (ordered or pending ones, bottles guests bring to a tast
 
 Deleting a user keeps their personal storage and its bottles, so the admin can tidy up afterwards.
 
+## The catalog
+
+Wines, vintages, winemakers, grapes, regions and countries are one shared set, but each person only sees the ones that matter to them. You see a vintage if any of these is true:
+
+- a bottle of it is in a storage you can see
+- you wrote a tasting note on it
+- you added it (or re-added it)
+
+A visible vintage brings its wine, and a visible wine brings its winemaker, region, country and grapes. Records nobody you share with has bottles of drop out of your lists and counts. The admin sees everything.
+
+- **Adding something that already exists but is hidden from you** (a winemaker, wine, vintage, grape, region or country) reuses the existing record instead of creating a duplicate, and from then on you see it. Adding one you can already see is still a duplicate error where that was already the case.
+- **Editing or deleting** a catalog record needs you to be able to see it.
+- **Tasting notes** show up for everyone who can see the vintage, and note counts on wines and vintages only count those. Only the author, or the admin, can edit a note. You can only write a note on a vintage you can see.
+- **Adding your first bottle of a wine nobody has shared with you:** pick it via Add wine. If it already exists, you'll get the existing record.
+
 ## Parties and links
 
 For now a party or shared link belongs to whoever made it, and the admin sees all. A shared link only shows bottles its creator can see, checked each time it's opened. A party can only pour bottles you can edit. Letting the admin add co-hosts to a party or link is planned.
 
 ## Not covered yet
 
-- **The catalog** (wines, winemakers, regions and so on) is still one shared list that everyone sees. Hiding records nobody has bottles of is planned.
 - **The edit buttons don't change for View users.** The server refuses with "You have view-only access to this storage".
 - **MCP** has no login, so it sees everything. Keep it on localhost.
 
 ## Upgrading
 
-Migration 030 adds the access table. Existing bottles with no storage move into the first admin's personal storage; everything else stays visible to the admin. Other accounts start with no access until the admin shares storages with them.
+Migrations 030 and 031 add the access and catalog tables. Existing bottles with no storage move into the first admin's personal storage; everything else stays visible to the admin. Other accounts start with no access until the admin shares storages with them.

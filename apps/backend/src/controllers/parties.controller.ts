@@ -21,6 +21,7 @@ import type {
 } from "@cellarboss/types";
 import type { Database } from "@schema/database.js";
 import { db } from "@utils/database.js";
+import { markSeen } from "@utils/catalog-access.js";
 import {
   currentViewer,
   ensurePersonalStorage,
@@ -226,13 +227,17 @@ async function resolveVintage(
     .where("wineId", "=", input.wineId)
     .where("year", input.year === null ? "is" : "=", input.year)
     .executeTakeFirst();
-  if (existing) return { id: existing.id, created: false };
+  if (existing) {
+    await markSeen("vintage", existing.id, trx);
+    return { id: existing.id, created: false };
+  }
   const created = await insertReturning(trx, "vintage", {
     wineId: input.wineId,
     year: input.year,
     drinkFrom: null,
     drinkUntil: null,
   });
+  await markSeen("vintage", created.id, trx);
   return { id: created.id, created: true };
 }
 

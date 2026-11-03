@@ -1,4 +1,10 @@
 import { db } from "@utils/database.js";
+import {
+  adoptHidden,
+  catalogIds,
+  markSeen,
+  requireCatalog,
+} from "@utils/catalog-access.js";
 import { insertReturning, updateReturning } from "@utils/query-helpers.js";
 import {
   bottleCountsByVintageIds,
@@ -13,17 +19,18 @@ import type {
 } from "@cellarboss/types";
 
 export async function list(): Promise<VintageDetail[]> {
-  const rows = await db.selectFrom("vintage").selectAll().execute();
-  // Every vintage is returned, so count across the whole table
-  return withCounts(rows, undefined);
+  const ids = await catalogIds("vintage");
+  let query = db.selectFrom("vintage").selectAll();
+  if (ids) query = query.where("id", "in", ids);
+  // Counts are scoped to what the user can see, so count across the table
+  return withCounts(await query.execute(), undefined);
 }
 
 export async function getByWineId(wineId: number): Promise<VintageDetail[]> {
-  const rows = await db
-    .selectFrom("vintage")
-    .selectAll()
-    .where("wineId", "=", wineId)
-    .execute();
+  const ids = await catalogIds("vintage");
+  let query = db.selectFrom("vintage").selectAll().where("wineId", "=", wineId);
+  if (ids) query = query.where("id", "in", ids);
+  const rows = await query.execute();
   return withCounts(
     rows,
     rows.map((r) => r.id),
@@ -31,11 +38,10 @@ export async function getByWineId(wineId: number): Promise<VintageDetail[]> {
 }
 
 export async function getById(id: number): Promise<VintageDetail | undefined> {
-  const row = await db
-    .selectFrom("vintage")
-    .selectAll()
-    .where("id", "=", id)
-    .executeTakeFirst();
+  const ids = await catalogIds("vintage");
+  let query = db.selectFrom("vintage").selectAll().where("id", "=", id);
+  if (ids) query = query.where("id", "in", ids);
+  const row = await query.executeTakeFirst();
   if (!row) return undefined;
   const [detail] = await withCounts([row], [id]);
   return detail;
@@ -58,14 +64,32 @@ async function withCounts(
 }
 
 export async function create(data: CreateVintage) {
-  return await insertReturning(db, "vintage", data);
+  // Re-adding a vintage that exists but is hidden from you reuses it.
+  let existing = db
+    .selectFrom("vintage")
+    .selectAll()
+    .where("wineId", "=", data.wineId);
+  existing =
+    data.year === null
+      ? existing.where("year", "is", null)
+      : existing.where("year", "=", data.year);
+  const hidden = await adoptHidden(
+    "vintage",
+    await existing.executeTakeFirst(),
+  );
+  if (hidden) return hidden;
+  const created = await insertReturning(db, "vintage", data);
+  await markSeen("vintage", created.id);
+  return created;
 }
 
 export async function update(id: number, data: UpdateVintage) {
+  await requireCatalog("vintage", id);
   return await updateReturning(db, "vintage", id, data);
 }
 
 export async function remove(id: number) {
+  await requireCatalog("vintage", id);
   return await db
     .deleteFrom("vintage")
     .where("id", "=", id)

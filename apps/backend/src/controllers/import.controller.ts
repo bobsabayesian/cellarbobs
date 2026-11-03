@@ -10,6 +10,7 @@ import type {
 import type { Database } from "@schema/database.js";
 import { db } from "@utils/database.js";
 import { insertReturning } from "@utils/query-helpers.js";
+import { markSeen } from "@utils/catalog-access.js";
 import { logger } from "@utils/logger.js";
 import {
   RemoteFetchError,
@@ -503,8 +504,11 @@ export async function commitWithin(
       ? query.where("year", "is", null)
       : query.where("year", "=", year);
   const existing = await query.executeTakeFirst();
-  if (existing)
+  if (existing) {
+    await markSeen("wine", wineId, trx);
+    await markSeen("vintage", existing.id, trx);
     return { wineId, vintageId: existing.id, created: false, createdRecords };
+  }
 
   const vintage = await insertReturning(trx, "vintage", {
     wineId,
@@ -513,6 +517,8 @@ export async function commitWithin(
     drinkUntil,
   });
   createdRecords.vintageId = vintage.id;
+  await markSeen("wine", wineId, trx);
+  await markSeen("vintage", vintage.id, trx);
   return { wineId, vintageId: vintage.id, created: true, createdRecords };
 }
 

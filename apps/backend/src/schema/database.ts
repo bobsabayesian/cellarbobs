@@ -35,6 +35,13 @@ export interface LocationTable extends Omit<Location, "id"> {
   createdBy?: string | null;
 }
 
+export interface CatalogSeenTable {
+  id: Generated<number>;
+  kind: "vintage" | "wine" | "winemaker" | "grape" | "region" | "country";
+  recordId: number;
+  userId: string;
+}
+
 export interface StorageAccessTable {
   id: Generated<number>;
   storageId: number;
@@ -198,6 +205,7 @@ export interface Database {
   region: RegionTable;
   storage: StorageTable;
   storageAccess: StorageAccessTable;
+  catalogSeen: CatalogSeenTable;
   vintage: VintageTable;
   wine: WineTable;
   winegrape: WineGrapeTable;

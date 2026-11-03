@@ -51,7 +51,7 @@ Built, with beginner and advanced formats as editable files in `PARTY_FORMATS_DI
 
 ### Steps (each can ship on its own)
 
-**Step 1 is built** (see `apps/web/docs/features/family-access.md`): storage access, personal storages, bottle scoping and the admin screen. Parties and links are visible only to their creator for now. Steps 2 and 3 below remain.
+**Step 1 is built** (see `apps/web/docs/features/family-access.md`): storage access, personal storages, bottle scoping and the admin screen. Parties and links are visible only to their creator for now. Step 2 (catalog visibility) is built too. Step 3 below remains.
 
 1. **Storage access and bottle scoping.** Migration with `storageAccess` and personal storages. One backend helper, `visibleStorages(user)`, applied to every query that touches bottles or storages: bottles, storages and locations, vintage and wine embedded counts, dashboard and cellar value, Pending, Consumed, capacity, import and the receive and move pickers. Write checks (view vs edit) on bottle and storage mutations. The admin screen assigns each user None, View or Edit per storage, as a tree. It's reachable from the Users page and from each storage's "Who has access".
 2. **Catalog visibility.** `createdBy` on the catalog tables, the visibility rule above in the list and detail endpoints, and reuse of hidden duplicates on create.
