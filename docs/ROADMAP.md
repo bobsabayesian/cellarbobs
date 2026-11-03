@@ -4,11 +4,11 @@ Planned work for this fork, roughly in priority order. Each item notes what it t
 
 ## Done: tasting notes in party formats
 
-Notes can be written in Quick, Beginner or Advanced style (same format files as parties), with a notebook icon on every row of the bottles list. See `apps/web/docs/features/tasting-notes.md`. Not yet in the mobile app, the MCP tools don't expose the answers, and the "Look" colour answers aren't shown as swatches on notes.
+Notes can be written in Quick, Beginner or Advanced style (same format files as parties), with a notebook icon on every row of the bottles list. See `apps/web/docs/features/tasting-notes.md`. The MCP tools don't expose the answers, and the "Look" colour answers aren't shown as swatches on notes.
 
 ## Done: shared links
 
-Tools → **Shared links** sends someone a timed link to browse the stored cellar (no prices) and mark bottles to set aside, with a pull list sorted by bin. See `apps/web/docs/features/share-links.md`. Possible follow-ups: a QR code like parties have, and showing shared links in the mobile app.
+Tools → **Shared links** sends someone a timed link to browse the stored cellar (no prices) and mark bottles to set aside, with a pull list sorted by bin. See `apps/web/docs/features/share-links.md`. Possible follow-up: a QR code like parties have.
 
 ## Done: consumed bottles
 
@@ -43,7 +43,7 @@ Built, with beginner and advanced formats as editable files in `PARTY_FORMATS_DI
 ## Smaller follow-ups noted along the way
 
 - Party and shared-link routes are plain Hono handlers, not OpenAPI routes, so they're missing from `/api/docs`.
-- The mobile app doesn't show the bottle consumed fields or Party Mode yet.
+- The mobile app (`apps/mobile`) is parked: the plan is to use the website on phones, so it isn't kept up with new features. It still has to compile, since it shares the types, validators and common packages.
 - The MCP server has no authentication, so it's localhost or SSH tunnel only. Using it from claude.ai would need auth first.
 - The web and common `formatDate` tests fail when the machine's timezone isn't UTC (they pass with `TZ=UTC`).
 - One mobile test failed intermittently once and didn't reproduce.
