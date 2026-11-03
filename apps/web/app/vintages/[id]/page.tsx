@@ -20,11 +20,18 @@ import { TastingNotesSection } from "@/components/tasting-notes/TastingNotesSect
 import { VintageImageGallery } from "@/components/images/VintageImageGallery";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { queryGate } from "@/lib/functions/query-gate";
+import { useState } from "react";
+import { useSettingsContext } from "@/contexts/settings-context";
+import { hidesConsumed } from "@cellarboss/common/settings";
+import { isConsumedStatus } from "@cellarboss/validators";
+import { Button } from "@/components/ui/button";
 import type { WineType } from "@cellarboss/validators/constants";
 
 export default function ViewVintagePage() {
   const params = useParams();
   const router = useRouter();
+  const settings = useSettingsContext();
+  const [showPast, setShowPast] = useState(false);
   const vintageId = Number(params.id);
 
   const vintageQuery = useApiQuery({
@@ -117,6 +124,36 @@ export default function ViewVintagePage() {
     if (a.status !== "stored" && b.status === "stored") return 1;
     return 0;
   });
+  // Bottles you still have come first; drunk, sold and gifted ones fold
+  // into "N past bottles" unless the hideConsumed setting is off.
+  const foldPast = hidesConsumed(settings);
+  const currentBottles = foldPast
+    ? sortedBottles.filter((b) => !isConsumedStatus(b.status))
+    : sortedBottles;
+  const pastBottles = foldPast
+    ? sortedBottles
+        .filter((b) => isConsumedStatus(b.status))
+        .sort((a, b) =>
+          (b.consumedDate ?? "").localeCompare(a.consumedDate ?? ""),
+        )
+    : [];
+  const renderBottle = (bottle: (typeof bottles)[number]) => {
+    const storage = bottle.storageId
+      ? storageMap.get(bottle.storageId)
+      : undefined;
+    const location = storage?.locationId
+      ? locationMap.get(storage.locationId)
+      : undefined;
+    return (
+      <VintageBottleListItem
+        key={bottle.id}
+        bottle={bottle}
+        wineType={wine?.type as WineType | undefined}
+        locationName={location?.name}
+        storagePath={getStoragePath(bottle.storageId)}
+      />
+    );
+  };
 
   const yearDisplay = vintage.year !== null ? String(vintage.year) : "NV";
   const title = wine ? `${wine.name} ${yearDisplay}` : yearDisplay;
@@ -157,28 +194,36 @@ export default function ViewVintagePage() {
           <RelatedResourceSection
             className=""
             heading="Bottles"
-            count={bottles.length}
+            count={currentBottles.length}
             addHref={`/bottles/new?vintageId=${vintageId}`}
             addLabel="Add bottle"
             emptyMessage="No bottles yet"
           >
-            {sortedBottles.map((bottle) => {
-              const storage = bottle.storageId
-                ? storageMap.get(bottle.storageId)
-                : undefined;
-              const location = storage?.locationId
-                ? locationMap.get(storage.locationId)
-                : undefined;
-              return (
-                <VintageBottleListItem
-                  key={bottle.id}
-                  bottle={bottle}
-                  wineType={wine?.type as WineType | undefined}
-                  locationName={location?.name}
-                  storagePath={getStoragePath(bottle.storageId)}
-                />
-              );
-            })}
+            {bottles.length > 0 && (
+              <>
+                {currentBottles.length === 0 && (
+                  <p className="py-2 text-sm text-muted-foreground">
+                    None in the cellar now.
+                  </p>
+                )}
+                {currentBottles.map(renderBottle)}
+                {pastBottles.length > 0 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start"
+                      aria-expanded={showPast}
+                      onClick={() => setShowPast((v) => !v)}
+                    >
+                      {showPast ? "Hide" : "Show"} {pastBottles.length} past{" "}
+                      {pastBottles.length === 1 ? "bottle" : "bottles"}
+                    </Button>
+                    {showPast && pastBottles.map(renderBottle)}
+                  </>
+                )}
+              </>
+            )}
           </RelatedResourceSection>
         </div>
 

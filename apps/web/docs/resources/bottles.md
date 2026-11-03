@@ -7,7 +7,9 @@ Optionally, you can also create a [storage location](/resources/storages) to tra
 
 ## List View
 
-The bottles page shows all bottles in a searchable, filterable data table.
+The bottles page shows your bottles in a searchable, filterable data table.
+
+With the **Hide consumed bottles** [setting](/guide/settings) on (the default), drunk, sold and gifted bottles are left out. **Show consumed (N)** brings them back for that visit, and a status filter in the URL (e.g. `/bottles?status=drunk`) always shows exactly what it asks for. On a [vintage](/resources/vintages) page, past bottles fold into "Show N past bottles", newest first.
 
 ![Bottles list](/screenshots/bottles-list.png)
 

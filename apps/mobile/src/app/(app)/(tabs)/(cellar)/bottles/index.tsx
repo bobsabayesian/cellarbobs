@@ -6,6 +6,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DataList } from "@/components/DataList";
 import { BottleListItem } from "@/components/bottle/BottleListItem";
 import { useApiQuery } from "@/hooks/use-api-query";
+import { useSettings } from "@/hooks/use-settings";
+import { hidesConsumed } from "@cellarboss/common/settings";
+import { BOTTLE_STATUSES } from "@cellarboss/validators/constants";
 import { api } from "@/lib/api/client";
 import { queryGate } from "@/lib/functions/query-gate";
 import { formatDrinkingStatus } from "@/lib/functions/format";
@@ -32,6 +35,13 @@ const SORT_OPTIONS = [
 ];
 
 export default function CellarScreen() {
+  // Consumed bottles are left out by default unless the hideConsumed
+  // setting is off (Application Settings on the web).
+  const settingsQuery = useSettings();
+  const defaultStatuses =
+    settingsQuery.data && !hidesConsumed(settingsQuery.data)
+      ? [...BOTTLE_STATUSES]
+      : DEFAULT_BOTTLE_STATUS_FILTER;
   const commonStyles = useCommonStyles();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -154,7 +164,7 @@ export default function CellarScreen() {
       key: "status",
       label: "Status",
       options: STATUS_FILTER_OPTIONS,
-      defaultValues: DEFAULT_BOTTLE_STATUS_FILTER,
+      defaultValues: defaultStatuses,
       predicate: (bottle: Bottle, selectedValues: string[]) =>
         selectedValues.includes(bottle.status),
     },

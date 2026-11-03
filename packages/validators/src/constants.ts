@@ -74,3 +74,10 @@ export const TASTING_TAG_GROUPS = {
 } as const;
 export const TASTING_TAGS = Object.values(TASTING_TAG_GROUPS).flat();
 export type TastingTag = (typeof TASTING_TAGS)[number];
+
+/** Statuses of bottles that have left the cellar for good. */
+export const CONSUMED_BOTTLE_STATUSES = ["drunk", "sold", "gifted"] as const;
+
+export function isConsumedStatus(status: string): boolean {
+  return (CONSUMED_BOTTLE_STATUSES as readonly string[]).includes(status);
+}

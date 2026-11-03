@@ -6,11 +6,12 @@ The settings page allows administrators to configure application-wide preference
 
 ## Available Settings
 
-| Setting     | Description                                                          |
-| ----------- | -------------------------------------------------------------------- |
-| Language    | The language used throughout the application (i18n coming soon)      |
-| Currency    | The currency symbol used for displaying prices (e.g., USD, EUR, GBP) |
-| Date Format | The format used for displaying dates throughout the application      |
+| Setting               | Description                                                                                                                                                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language              | The language used throughout the application (i18n coming soon)                                                                                                                                                                  |
+| Currency              | The currency symbol used for displaying prices (e.g., USD, EUR, GBP)                                                                                                                                                             |
+| Date Format           | The format used for displaying dates throughout the application                                                                                                                                                                  |
+| Hide consumed bottles | On by default. Leaves drunk, sold and gifted bottles out of everyday views: the bottles list (with a **Show consumed** button), past bottles folded away on vintage pages, and the mobile cellar list. Toggle it with the switch |
 
 ## Editing a Setting
 

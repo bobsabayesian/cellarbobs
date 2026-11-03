@@ -22,3 +22,11 @@ export function parseValue(value: string): SettingValueType {
 
   return value;
 }
+
+/** Setting key: hide drunk, sold and gifted bottles from everyday views. */
+export const HIDE_CONSUMED_SETTING = "hideConsumed";
+
+/** Whether views should hide consumed bottles. On unless set to false. */
+export function hidesConsumed(settings: ParsedSettingsMap): boolean {
+  return settings.get(HIDE_CONSUMED_SETTING) !== false;
+}
