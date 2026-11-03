@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // /party/<token> is the guest page for blind tastings: no login, the token is
-// the credential (see lib/api/party-public.ts).
-const publicRoutes = ["/login", "/api/auth", "/party/"];
+// the credential (see lib/api/party-public.ts). /share/<token> is a shared
+// cellar link, the same way (lib/api/share-public.ts).
+const publicRoutes = ["/login", "/api/auth", "/party/", "/share/"];
 
 /** Passes the path to the root layout, which renders some pages bare. */
 function next(request: NextRequest) {

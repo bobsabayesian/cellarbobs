@@ -125,6 +125,34 @@ export interface PartyReviewTable {
   updatedAt: string;
 }
 
+export interface ShareLinkTable {
+  id: Generated<number>;
+  title: string;
+  message: string;
+  token: string;
+  expiresAt: string;
+  revokedAt: string | null;
+  maxMarks: number | null;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface ShareGuestTable {
+  id: Generated<number>;
+  linkId: number;
+  name: string;
+  secretHash: string;
+  createdAt: string;
+}
+
+export interface ShareMarkTable {
+  id: Generated<number>;
+  linkId: number;
+  guestId: number;
+  bottleId: number;
+  createdAt: string;
+}
+
 export type SettingTable = Setting;
 
 export type PreferenceTable = Preference;
@@ -166,4 +194,7 @@ export interface Database {
   partyBottle: PartyBottleTable;
   partyGuest: PartyGuestTable;
   partyReview: PartyReviewTable;
+  shareLink: ShareLinkTable;
+  shareGuest: ShareGuestTable;
+  shareMark: ShareMarkTable;
 }

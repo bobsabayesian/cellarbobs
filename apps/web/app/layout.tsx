@@ -26,7 +26,9 @@ export default async function RootLayout({
   // the sidebar, even for a logged-in host (see proxy.ts for x-pathname).
   const pathname = (await headers()).get("x-pathname") ?? "";
   const bare =
-    pathname.startsWith("/party/") || /^\/parties\/\d+\/present/.test(pathname);
+    pathname.startsWith("/party/") ||
+    pathname.startsWith("/share/") ||
+    /^\/parties\/\d+\/present/.test(pathname);
 
   return (
     <html lang="en" suppressHydrationWarning>

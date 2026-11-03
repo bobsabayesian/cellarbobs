@@ -17,6 +17,7 @@ import { registerImageRoutes } from "./images.routes";
 import { registerPreferenceRoutes } from "./preferences.routes";
 import { registerImportRoutes } from "./import.routes";
 import { registerPartyRoutes } from "./parties.routes";
+import { registerShareRoutes } from "./share.routes";
 
 export function registerRoutes(app: OpenAPIHono) {
   registerBottleRoutes(app);
@@ -41,4 +42,5 @@ export function registerRoutes(app: OpenAPIHono) {
   registerImageRoutes(app);
   registerImportRoutes(app);
   registerPartyRoutes(app);
+  registerShareRoutes(app);
 }

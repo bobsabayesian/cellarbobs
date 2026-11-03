@@ -17,3 +17,4 @@ export * from "./images.validator";
 export * from "./preferences.validator";
 export * from "./import.validator";
 export * from "./party.validator";
+export * from "./share.validator";

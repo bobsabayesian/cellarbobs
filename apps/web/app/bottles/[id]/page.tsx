@@ -12,6 +12,7 @@ import {
   BottleWine,
   GlassWater,
   PartyPopper,
+  Link2,
 } from "lucide-react";
 import { getBottleById, deleteBottle, updateBottle } from "@/lib/api/bottles";
 import { getVintages } from "@/lib/api/vintages";
@@ -23,6 +24,7 @@ import { getStorages } from "@/lib/api/storages";
 import { getStorageAncestry } from "@cellarboss/common/storages";
 import { getLocations } from "@/lib/api/locations";
 import { getPartiesForBottle } from "@/lib/api/parties";
+import { getShareMarksForBottle } from "@/lib/api/share";
 import { PageHeader } from "@/components/page/PageHeader";
 import { DetailCard } from "@/components/detail/DetailCard";
 import { DetailRow } from "@/components/detail/DetailRow";
@@ -100,6 +102,11 @@ export default function ViewBottlePage() {
   const partiesQuery = useApiQuery({
     queryKey: ["bottleParties", bottleId],
     queryFn: () => getPartiesForBottle(bottleId),
+    enabled: !!bottleId,
+  });
+  const shareMarksQuery = useApiQuery({
+    queryKey: ["bottleShareMarks", bottleId],
+    queryFn: () => getShareMarksForBottle(bottleId),
     enabled: !!bottleId,
   });
 
@@ -243,6 +250,20 @@ export default function ViewBottlePage() {
                     ? "tasted"
                     : "cancelled"}
               </p>
+            </DetailCard>
+          ))}
+
+          {(shareMarksQuery.data ?? []).map((m) => (
+            <DetailCard key={m.linkId} heading="Set aside" icon={Link2}>
+              <DetailRow icon={Link2}>
+                <Link
+                  href={`/links/${m.linkId}`}
+                  className="text-primary hover:underline"
+                >
+                  Marked for {m.linkTitle}
+                </Link>
+              </DetailRow>
+              <p className="text-sm text-muted-foreground">by {m.guest}</p>
             </DetailCard>
           ))}
 

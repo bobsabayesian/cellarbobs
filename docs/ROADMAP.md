@@ -2,6 +2,10 @@
 
 Planned work for this fork, roughly in priority order. Each item notes what it touches, so it can be picked up cold.
 
+## Done: shared links
+
+Tools → **Shared links** sends someone a timed link to browse the stored cellar (no prices) and mark bottles to set aside, with a pull list sorted by bin. See `apps/web/docs/features/share-links.md`. Possible follow-ups: a QR code like parties have, and showing shared links in the mobile app.
+
 ## Done: consumed bottles
 
 Consumed bottles are hidden from everyday views by the **Hide consumed bottles** setting, and the **Consumed** page (sidebar, under Wines) is the drinking history: newest first, grouped by month, with consumed notes, same-day tasting notes, search, and status and year filters. The sidebar now has a **Wines** section (Bottles, Pending, Consumed, Tasting Notes) with Wines, Grapes and Winemakers under an expandable **Catalog** link.
@@ -35,7 +39,7 @@ Built, with beginner and advanced formats as editable files in `PARTY_FORMATS_DI
 ## Smaller follow-ups noted along the way
 
 - Commit and push the `feat/bottle-consumed-fields` branch, split into logical commits.
-- Party routes are plain Hono handlers, not OpenAPI routes, so they're missing from `/api/docs`.
+- Party and shared-link routes are plain Hono handlers, not OpenAPI routes, so they're missing from `/api/docs`.
 - The mobile app doesn't show the bottle consumed fields or Party Mode yet.
 - The MCP server has no authentication, so it's localhost or SSH tunnel only. Using it from claude.ai would need auth first.
 - The web and common `formatDate` tests fail when the machine's timezone isn't UTC (they pass with `TZ=UTC`).

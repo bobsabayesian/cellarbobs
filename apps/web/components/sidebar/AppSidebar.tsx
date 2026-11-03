@@ -10,6 +10,7 @@ import {
   BottleWine,
   ClipboardList,
   Truck,
+  Link2,
   PartyPopper,
   Settings,
   Grape,
@@ -119,6 +120,7 @@ const geographyItems = [
 
 const toolItems = [
   { title: "Tasting Parties", url: "/parties", icon: PartyPopper },
+  { title: "Shared links", url: "/links", icon: Link2 },
 ];
 
 const settingsItems = [

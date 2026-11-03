@@ -69,3 +69,14 @@ export type {
   TasterCalibration,
   GuessAccuracy,
 } from "./party";
+export type {
+  ShareLinkState,
+  ShareLink,
+  ShareLinkSummary,
+  ShareMarkDetail,
+  ShareLinkDetail,
+  CreateShareLink,
+  SharedVintage,
+  SharedCellar,
+  BottleShareMark,
+} from "./share";
