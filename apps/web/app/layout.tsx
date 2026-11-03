@@ -41,7 +41,7 @@ export default async function RootLayout({
           ) : isLoggedIn ? (
             <div className="flex min-h-screen w-full">
               <AppSidebar />
-              <main className="flex-1 p-4 md:p-10 bg-muted">
+              <main className="min-w-0 flex-1 p-4 md:p-10 bg-muted">
                 <MobileHeader />
                 <VersionMismatchBanner />
                 <div className="w-full bg-card shadow-sm rounded-lg p-4 md:p-10">

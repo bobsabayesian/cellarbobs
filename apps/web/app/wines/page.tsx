@@ -5,6 +5,8 @@ import type { WineDetail } from "@cellarboss/types";
 import { getCountries } from "@/lib/api/countries";
 import { getWines, deleteWine, updateWine } from "@/lib/api/wines";
 import { getWinemakers } from "@/lib/api/winemakers";
+import { getVintages } from "@/lib/api/vintages";
+import { MobileWineList } from "@/components/wine/MobileWineList";
 import { getRegions } from "@/lib/api/regions";
 import {
   DataTable,
@@ -98,15 +100,22 @@ export default function WinesPage() {
     queryFn: getCountries,
   });
 
+  const vintageQuery = useApiQuery({
+    queryKey: ["vintages"],
+    queryFn: getVintages,
+  });
+
   const result = queryGate([
     wineQuery,
     winemakerQuery,
     regionQuery,
     countryQuery,
+    vintageQuery,
   ]);
   if (!result.ready) return result.gate;
 
-  const [winesList, winemakerList, regionList, countryList] = result.data;
+  const [winesList, winemakerList, regionList, countryList, vintageList] =
+    result.data;
 
   const bulkEditFields: BulkEditField<WineDetail>[] = [
     {
@@ -297,28 +306,40 @@ export default function WinesPage() {
   return (
     <section>
       <PageHeader title="Wines" />
-      <DataTable<WineDetail>
-        data={winesList}
-        columns={columns}
-        filterColumnName="name"
-        defaultSortColumn="name"
-        filters={wineFilters}
-        onBulkDelete={handleBulkDelete}
-        bulkEditFields={bulkEditFields}
-        onBulkEdit={handleBulkEdit}
-        renderDetail={(wine) => <WineDetailRow wine={wine} />}
-        buttons={[
-          <AddButton
-            onClick={async () => router.push(`/wines/new`)}
-            subject="Wine"
-            key="add"
-          />,
-          <ImportButton
-            onClick={async () => router.push(`/wines/import`)}
-            key="import"
-          />,
-        ]}
-      />
+      {/* Phones get cards; the table is for wider screens. */}
+      <div className="md:hidden">
+        <MobileWineList
+          wines={winesList}
+          vintages={vintageList}
+          winemakers={winemakerList}
+          regions={regionList}
+          countries={countryList}
+        />
+      </div>
+      <div className="hidden md:block">
+        <DataTable<WineDetail>
+          data={winesList}
+          columns={columns}
+          filterColumnName="name"
+          defaultSortColumn="name"
+          filters={wineFilters}
+          onBulkDelete={handleBulkDelete}
+          bulkEditFields={bulkEditFields}
+          onBulkEdit={handleBulkEdit}
+          renderDetail={(wine) => <WineDetailRow wine={wine} />}
+          buttons={[
+            <AddButton
+              onClick={async () => router.push(`/wines/new`)}
+              subject="Wine"
+              key="add"
+            />,
+            <ImportButton
+              onClick={async () => router.push(`/wines/import`)}
+              key="import"
+            />,
+          ]}
+        />
+      </div>
     </section>
   );
 }

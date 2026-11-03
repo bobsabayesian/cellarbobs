@@ -2,6 +2,10 @@
 
 Planned work for this fork, roughly in priority order. Each item notes what it touches, so it can be picked up cold.
 
+## Phone views of the lists
+
+The **Wines** list shows cards on phones (search, quick filters, and an Add note button on each card; wines with several vintages open to pick one), and the main area no longer stretches wider than the screen. **Bottles** (and Storages) are still the desktop table on phones and scroll sideways. Plan for Bottles: cards grouped by wine and vintage ("Barolo 2017 ×3 · bins 12, 13") that expand to the individual bottles, quick filters, no selection or bulk actions on phones, and the same Add note button.
+
 ## Done: tasting notes in party formats
 
 Notes can be written in Quick, Beginner or Advanced style (same format files as parties), with a notebook icon on every row of the bottles list. See `apps/web/docs/features/tasting-notes.md`. The MCP tools don't expose the answers, and the "Look" colour answers aren't shown as swatches on notes.
