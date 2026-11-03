@@ -32,6 +32,15 @@ Use the filter controls above the table to narrow results by status, wine type, 
 
 ![Bottles filtered](/screenshots/bottles-filter.png)
 
+## Consumed
+
+**Consumed** in the sidebar is your drinking history: every bottle that's been drunk, sold or given away, newest first and grouped by month. Each bottle shows:
+
+- the date it left the cellar, and the note recorded then (e.g. "w/Kristen", "Brought by Dave · Blind tasting: …")
+- a **Note: N/10** link when you wrote a tasting note for that vintage on the same day
+
+At the top are counts for all time and this year. Search covers the wine, region, type and note, and tolerates typos. The status buttons (Drunk, Sold, Gifted) and the year menu narrow the list.
+
 ## Creating a Bottle
 
 Click the **Create new Bottle** button to add a new bottle to your cellar.

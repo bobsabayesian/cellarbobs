@@ -2,9 +2,9 @@
 
 Planned work for this fork, roughly in priority order. Each item notes what it touches, so it can be picked up cold.
 
-## Drinking history view
+## Done: consumed bottles
 
-Consumed bottles are now hidden from everyday views by the **Hide consumed bottles** setting (done). Still to plan: a dedicated view of drunk, sold and gifted bottles, newest first, with the consumed date and note (e.g. "w/Kristen", "Blind tasting: …").
+Consumed bottles are hidden from everyday views by the **Hide consumed bottles** setting, and the **Consumed** page (sidebar, under Wines) is the drinking history: newest first, grouped by month, with consumed notes, same-day tasting notes, search, and status and year filters. The sidebar now has a **Wines** section (Bottles, Pending, Consumed, Tasting Notes) with Wines, Grapes and Winemakers under an expandable **Catalog** link.
 
 ## Done: storage capacity
 

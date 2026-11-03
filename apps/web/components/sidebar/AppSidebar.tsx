@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { getBottles } from "@/lib/api/bottles";
 import { PENDING_STATUSES } from "@/lib/constants/pending";
@@ -23,6 +25,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ChevronsUpDown,
+  ChevronRight,
+  GlassWater,
+  Library,
   Moon,
   Sun,
 } from "lucide-react";
@@ -51,6 +56,9 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -59,14 +67,45 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 
+// The everyday pages, always visible.
 const wineItems = [
   { title: "Bottles", url: "/bottles", icon: BottleWine },
   { title: "Pending", url: "/pending", icon: Truck },
-  { title: "Wines", url: "/wines", icon: Barrel },
+  { title: "Consumed", url: "/consumed", icon: GlassWater },
   { title: "Tasting Notes", url: "/tasting-notes", icon: ClipboardList },
+];
+
+// The catalogue behind them, folded under "Catalog".
+const catalogItems = [
+  { title: "Wines", url: "/wines", icon: Barrel },
   { title: "Grapes", url: "/grapes", icon: Grape },
   { title: "Winemakers", url: "/winemakers", icon: User },
 ];
+
+const CATALOG_OPEN_KEY = "cellarboss.sidebar.catalogOpen";
+
+/** A remembered on/off flag in localStorage; off on the server. */
+function useStoredFlag(key: string): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener("storage", onChange);
+      return () => window.removeEventListener("storage", onChange);
+    },
+    () => {
+      try {
+        return localStorage.getItem(key) === "true";
+      } catch {
+        return false;
+      }
+    },
+    () => false,
+  );
+}
+
+/** The current page or one under it ("/wines/12" is under "/wines"). */
+function isCurrent(pathname: string, url: string) {
+  return pathname === url || pathname.startsWith(`${url}/`);
+}
 
 const storageItems = [
   { title: "Storages", url: "/storages", icon: Refrigerator },
@@ -122,6 +161,26 @@ export function AppSidebar() {
   ).length;
   const badges: Record<string, number> = { "/pending": pendingCount };
 
+  const pathname = usePathname() ?? "";
+  const onCatalogPage = catalogItems.some((i) => isCurrent(pathname, i.url));
+  // Open on a catalog page, otherwise as the viewer last left it; a click
+  // overrides both until the page changes.
+  const storedOpen = useStoredFlag(CATALOG_OPEN_KEY);
+  const [override, setOverride] = useState<boolean | null>(null);
+  const catalogOpen = override ?? (onCatalogPage || storedOpen);
+  const toggleCatalog = () => {
+    const next = !catalogOpen;
+    setOverride(next);
+    try {
+      localStorage.setItem(CATALOG_OPEN_KEY, String(next));
+    } catch {
+      // storage unavailable: the choice just isn't remembered
+    }
+  };
+  // With the sidebar shrunk to icons there's no room for a submenu, so
+  // the Catalog icon goes straight to Wines.
+  const iconOnly = state === "collapsed" && !isMobile;
+
   const sections = [
     { label: "Wines", items: wineItems },
     { label: "Storage", items: storageItems },
@@ -161,7 +220,11 @@ export function AppSidebar() {
               <SidebarMenu>
                 {items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={item.title}
+                      isActive={isCurrent(pathname, item.url)}
+                    >
                       <a href={item.url}>
                         <item.icon />
                         <span>{item.title}</span>
@@ -176,6 +239,51 @@ export function AppSidebar() {
                     ) : null}
                   </SidebarMenuItem>
                 ))}
+                {label === "Wines" && (
+                  <SidebarMenuItem>
+                    {iconOnly ? (
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="Catalog: wines, grapes, winemakers"
+                        isActive={onCatalogPage}
+                      >
+                        <Link href="/wines">
+                          <Library />
+                          <span>Catalog</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    ) : (
+                      <SidebarMenuButton
+                        onClick={toggleCatalog}
+                        aria-expanded={catalogOpen}
+                        tooltip="Catalog"
+                      >
+                        <Library />
+                        <span>Catalog</span>
+                        <ChevronRight
+                          className={`ml-auto transition-transform ${catalogOpen ? "rotate-90" : ""}`}
+                        />
+                      </SidebarMenuButton>
+                    )}
+                    {catalogOpen && !iconOnly && (
+                      <SidebarMenuSub>
+                        {catalogItems.map((item) => (
+                          <SidebarMenuSubItem key={item.title}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={isCurrent(pathname, item.url)}
+                            >
+                              <a href={item.url}>
+                                <item.icon />
+                                <span>{item.title}</span>
+                              </a>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    )}
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
