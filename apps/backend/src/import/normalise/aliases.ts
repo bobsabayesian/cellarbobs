@@ -23,6 +23,13 @@ export const GRAPE_ALIASES: Record<string, string> = {
   steen: "Chenin Blanc",
   "fume blanc": "Sauvignon Blanc",
   "trebbiano toscano": "Trebbiano",
+  carignane: "Carignan",
+  "moscato bianco": "Moscato",
+  "moscato blanco": "Moscato",
+  "palomino fino": "Palomino",
+  "lambrusco salamino": "Lambrusco",
+  "lambrusco di sorbara": "Lambrusco",
+  "lambrusco grasparossa": "Lambrusco",
 };
 
 export const COUNTRY_ALIASES: Record<string, string> = {
@@ -51,6 +58,8 @@ export const REGION_ALIASES: Record<string, string> = {
   sicilia: "Sicily",
   sardegna: "Sardinia",
   lombardia: "Lombardy",
+  // foldKey drops apostrophes without a space: "Valle d'Aosta" -> "valle daosta"
+  "valle daosta": "Aosta Valley",
   "valle d aosta": "Aosta Valley",
   rhone: "Rhone Valley",
   "northern rhone": "Rhone Valley",
@@ -60,4 +69,8 @@ export const REGION_ALIASES: Record<string, string> = {
   bourgogne: "Burgundy",
   douro: "Douro Valley",
   catalunya: "Catalonia",
+  "mosel saar ruwer": "Mosel",
+  tokaji: "Tokaj",
+  "jerez xeres sherry": "Jerez",
+  sherry: "Jerez",
 };
