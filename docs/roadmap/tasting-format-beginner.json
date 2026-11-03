@@ -1,0 +1,85 @@
+{
+  "appearance": {
+    "colors": {
+      "white": [
+        "pale yellow",
+        "gold"
+      ],
+      "red": [
+        "light red",
+        "dark red",
+        "purple"
+      ],
+      "rose": [
+        "pink",
+        "salmon"
+      ],
+      "orange": [
+        "orange",
+        "amber"
+      ]
+    }
+  },
+  "aromas": {
+    "fruit": [
+      "cherry",
+      "red berry",
+      "black fruit",
+      "plum",
+      "citrus",
+      "green apple",
+      "stone fruit",
+      "tropical",
+      "dried fruit"
+    ],
+    "floral": [
+      "rose",
+      "violet",
+      "white flowers"
+    ],
+    "earth": [
+      "earth",
+      "mushroom",
+      "forest floor",
+      "mineral",
+      "tar",
+      "leather"
+    ],
+    "oak": [
+      "vanilla",
+      "toast",
+      "smoke",
+      "cedar",
+      "coconut"
+    ],
+    "spice": [
+      "pepper",
+      "baking spice",
+      "herbal",
+      "licorice",
+      "tobacco"
+    ],
+    "other": [
+      "honey",
+      "nutty",
+      "brioche",
+      "funky"
+    ]
+  },
+  "palate": {
+    "sweetness": [
+      "dry",
+      "sweet"
+    ],
+    "body": [
+      "light",
+      "medium",
+      "heavy"
+    ],
+    "rating": [
+      "loved it",
+      "liked it",
+      "not for me"
+    ]
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "appearance": {
+    "clarity": [
+      "clear",
+      "hazy"
+    ],
+    "intensity": [
+      "pale",
+      "medium",
+      "deep"
+    ],
+    "color_scale": {
+      "white": [
+        "lemon-green",
+        "lemon",
+        "gold",
+        "amber",
+        "brown"
+      ],
+      "rose": [
+        "pink",
+        "salmon",
+        "orange"
+      ],
+      "red": [
+        "purple",
+        "ruby",
+        "garnet",
+        "tawny",
+        "brown"
+      ]
+    },
+    "other_observations": {
+      "bubbles": [
+        "petillance",
+        "creamy",
+        "aggressive",
+        "fine"
+      ],
+      "viscosity": [
+        "tears",
+        "legs",
+        "thick",
+        "watery"
+      ],
+      "deposit": [
+        "sediment",
+        "tartrates"
+      ]
+    }
+  },
+  "aroma_origin": {
+    "primary": {
+      "source": "grape_and_fermentation",
+      "categories": [
+        "fruit",
+        "floral",
+        "earth",
+        "vegetal",
+        "spice"
+      ]
+    },
+    "secondary": {
+      "source": "winemaking",
+      "categories": {
+        "oak": [
+          "vanilla",
+          "toast",
+          "cedar",
+          "smoke",
+          "dill",
+          "clove"
+        ],
+        "malolactic": [
+          "butter",
+          "cream",
+          "cheese"
+        ],
+        "autolytic": [
+          "brioche",
+          "biscuit",
+          "bread",
+          "pastry",
+          "yeast"
+        ]
+      }
+    },
+    "tertiary": {
+      "source": "maturation_and_aging",
+      "categories": {
+        "red_aging": [
+          "leather",
+          "forest floor",
+          "mushroom",
+          "meaty",
+          "tobacco",
+          "wet leaves",
+          "dried fruit"
+        ],
+        "white_aging": [
+          "petrol",
+          "honey",
+          "marzipan",
+          "almond",
+          "marmalade",
+          "dried apricot"
+        ],
+        "oxidation": [
+          "caramel",
+          "toffee",
+          "chocolate",
+          "coffee",
+          "walnut"
+        ]
+      }
+    }
+  },
+  "development_state": [
+    "youthful",
+    "developing",
+    "fully developed",
+    "tired/past its best"
+  ],
+  "palate": {
+    "sweetness": [
+      "dry",
+      "off-dry",
+      "medium-dry",
+      "medium-sweet",
+      "sweet"
+    ],
+    "acidity": {
+      "level": [
+        "low",
+        "medium-",
+        "medium",
+        "medium+",
+        "high"
+      ],
+      "texture": [
+        "crisp",
+        "tart",
+        "steely",
+        "flabby",
+        "racy",
+        "mouth-watering"
+      ]
+    },
+    "tannin": {
+      "level": [
+        "low",
+        "medium-",
+        "medium",
+        "medium+",
+        "high"
+      ],
+      "nature": [
+        "silky",
+        "velvety",
+        "fine-grained",
+        "grippy",
+        "coarse",
+        "chalky",
+        "astringent",
+        "unripe"
+      ]
+    },
+    "alcohol": {
+      "level": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "sensation": [
+        "integrated",
+        "warming",
+        "hot"
+      ]
+    },
+    "body": [
+      "light",
+      "medium-",
+      "medium",
+      "medium+",
+      "full"
+    ],
+    "flavor_intensity": [
+      "light",
+      "medium-",
+      "medium",
+      "medium+",
+      "pronounced"
+    ],
+    "finish": {
+      "length": [
+        "short",
+        "medium-",
+        "medium",
+        "medium+",
+        "long"
+      ],
+      "complexity": [
+        "simple",
+        "some complexity",
+        "very complex"
+      ]
+    }
+  }
+}
