@@ -36,6 +36,7 @@ const timelineBottleStatuses = new Set<Bottle["status"]>([
   "stored",
   "ordered",
   "in-primeur",
+  "in-tasting",
 ]);
 
 interface DrinkingWindowTimelineProps {

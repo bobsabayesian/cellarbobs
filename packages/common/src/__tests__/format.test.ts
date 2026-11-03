@@ -68,6 +68,10 @@ describe("formatStatus", () => {
     expect(formatStatus("in-cellar")).toBe("In Cellar");
   });
 
+  it("labels bottles out for a tasting", () => {
+    expect(formatStatus("in-tasting")).toBe("Out (In Tasting)");
+  });
+
   it("handles multiple hyphens", () => {
     expect(formatStatus("ready-to-drink")).toBe("Ready To Drink");
   });

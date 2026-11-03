@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { stringifyValues, expandNamePattern, parseIdParam } from "../strings";
+import {
+  stringifyValues,
+  expandNamePattern,
+  parseIdParam,
+  searchKey,
+  wineDisplayName,
+} from "../strings";
 
 describe("stringifyValues", () => {
   it("converts numbers to strings", () => {
@@ -112,5 +118,28 @@ describe("parseIdParam", () => {
 
   it("returns null for unsafe integers", () => {
     expect(parseIdParam("99999999999999999999")).toBeNull();
+  });
+});
+
+describe("searchKey", () => {
+  it("ignores accents and case", () => {
+    expect(searchKey("R. López de Heredia Viña Tondonia")).toBe(
+      "r. lopez de heredia vina tondonia",
+    );
+    expect(searchKey("Château Sorì")).toContain("chateau sori");
+  });
+});
+
+describe("wineDisplayName", () => {
+  it("doesn't repeat a producer the wine is named after", () => {
+    expect(wineDisplayName("Château Le Gay", "Château Le Gay")).toBe(
+      "Château Le Gay",
+    );
+    expect(wineDisplayName("Chateau Le Gay", "Château Le Gay Pomerol")).toBe(
+      "Château Le Gay Pomerol",
+    );
+    expect(wineDisplayName("Sottimano", "Barbaresco Fausoni")).toBe(
+      "Sottimano Barbaresco Fausoni",
+    );
   });
 });

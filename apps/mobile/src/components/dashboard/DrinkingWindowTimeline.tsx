@@ -12,6 +12,7 @@ const timelineBottleStatuses = new Set<Bottle["status"]>([
   "stored",
   "ordered",
   "in-primeur",
+  "in-tasting",
 ]);
 
 const READY_COLOR = "#2E8B57";

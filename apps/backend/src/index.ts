@@ -10,6 +10,12 @@ import { registerMcpRoutes } from "@mcp/route.js";
 import { errorHandler } from "@middleware/error.middleware.js";
 import { honoLogLayer, type HonoLogLayerVariables } from "@loglayer/hono";
 import { logger } from "@utils/logger.js";
+import { ensureTagsFile } from "./party/tags.js";
+import { ensureFormatFiles } from "./party/formats.js";
+
+// Give the host a tasting party tags file to edit, if configured and missing.
+ensureTagsFile();
+ensureFormatFiles();
 
 const app = new OpenAPIHono<{ Variables: HonoLogLayerVariables }>();
 

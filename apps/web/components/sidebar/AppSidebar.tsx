@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useApiQuery } from "@/hooks/use-api-query";
+import { getBottles } from "@/lib/api/bottles";
+import { PENDING_STATUSES } from "@/lib/constants/pending";
 import {
   BottleWine,
   ClipboardList,
+  Truck,
+  PartyPopper,
   Settings,
   Grape,
   User,
@@ -43,6 +48,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -55,6 +61,7 @@ import {
 
 const wineItems = [
   { title: "Bottles", url: "/bottles", icon: BottleWine },
+  { title: "Pending", url: "/pending", icon: Truck },
   { title: "Wines", url: "/wines", icon: Barrel },
   { title: "Tasting Notes", url: "/tasting-notes", icon: ClipboardList },
   { title: "Grapes", url: "/grapes", icon: Grape },
@@ -69,6 +76,10 @@ const storageItems = [
 const geographyItems = [
   { title: "Regions", url: "/regions", icon: Flag },
   { title: "Countries", url: "/countries", icon: Earth },
+];
+
+const toolItems = [
+  { title: "Tasting Parties", url: "/parties", icon: PartyPopper },
 ];
 
 const settingsItems = [
@@ -101,10 +112,21 @@ export function AppSidebar() {
     window.location.replace("/login");
   };
 
+  // Count of bottles on their way, shown next to "Pending".
+  const bottlesQuery = useApiQuery({
+    queryKey: ["bottles"],
+    queryFn: getBottles,
+  });
+  const pendingCount = (bottlesQuery.data ?? []).filter((b) =>
+    PENDING_STATUSES.includes(b.status),
+  ).length;
+  const badges: Record<string, number> = { "/pending": pendingCount };
+
   const sections = [
     { label: "Wines", items: wineItems },
     { label: "Storage", items: storageItems },
     { label: "Geography", items: geographyItems },
+    { label: "Tools", items: toolItems },
     {
       label: "Settings",
       items: isAdmin ? [...settingsItems, ...adminItems] : settingsItems,
@@ -145,6 +167,13 @@ export function AppSidebar() {
                         <span>{item.title}</span>
                       </a>
                     </SidebarMenuButton>
+                    {badges[item.url] ? (
+                      <SidebarMenuBadge
+                        aria-label={`${badges[item.url]} pending`}
+                      >
+                        {badges[item.url]}
+                      </SidebarMenuBadge>
+                    ) : null}
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>

@@ -12,6 +12,7 @@ import {
 } from "./setup";
 import { registerWineRoutes } from "@routes/wines.routes.js";
 import { registerVintageRoutes } from "@routes/vintages.routes.js";
+import { BOTTLE_STATUSES } from "@cellarboss/validators";
 import { db } from "@utils/database.js";
 
 async function addBottle(vintageId: number, status: Bottle["status"]) {
@@ -123,6 +124,7 @@ describe("Embedded counts on wine and vintage reads", () => {
         ordered: 0,
         stored: 2,
         "in-primeur": 0,
+        "in-tasting": 0,
         drunk: 1,
         sold: 0,
         gifted: 0,
@@ -155,7 +157,9 @@ describe("Embedded counts on wine and vintage reads", () => {
       });
       const empty = data.find((v: { id: number }) => v.id === emptyVintage);
       expect(empty.tastingNotesCount).toBe(0);
-      expect(Object.values(empty.bottles)).toEqual([0, 0, 0, 0, 0, 0]);
+      expect(Object.values(empty.bottles)).toEqual(
+        BOTTLE_STATUSES.map(() => 0),
+      );
     });
 
     it("PUT /vintage/:id does not include counts", async () => {

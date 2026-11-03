@@ -312,6 +312,34 @@ describe("Import API", () => {
     };
     const vintage = { year: 2015, drinkFrom: null, drinkUntil: null };
 
+    it("reports which records commitWithin created", async () => {
+      const first = await db
+        .transaction()
+        .execute((trx) =>
+          importController.commitWithin(trx, { wine: newWine, vintage }),
+        );
+      expect(first.createdRecords).toEqual({
+        winemakerId: expect.any(Number),
+        wineId: first.wineId,
+        vintageId: first.vintageId,
+      });
+      // Same wine, another year: only the vintage is new.
+      const second = await db.transaction().execute((trx) =>
+        importController.commitWithin(trx, {
+          wine: newWine,
+          vintage: { ...vintage, year: 2016 },
+        }),
+      );
+      expect(second.createdRecords).toEqual({ vintageId: second.vintageId });
+      // Existing vintage: nothing created.
+      const third = await db
+        .transaction()
+        .execute((trx) =>
+          importController.commitWithin(trx, { wine: newWine, vintage }),
+        );
+      expect(third).toMatchObject({ created: false, createdRecords: {} });
+    });
+
     it("reuses records that match by name", async () => {
       const maker = await seedMaker("Chateau Example");
       const result = await importController.commit({ wine: newWine, vintage });

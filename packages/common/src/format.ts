@@ -33,6 +33,7 @@ export function formatWineType(type: WineType): string {
 }
 
 export function formatStatus(status: string): string {
+  if (status === "in-tasting") return "Out (In Tasting)";
   return status
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

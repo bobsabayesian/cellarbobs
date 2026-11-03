@@ -67,6 +67,64 @@ export interface ImageTable extends Omit<Image, "id" | "isFavourite"> {
   isFavourite: ColumnType<number, number | undefined, number>;
 }
 
+export interface TastingPartyTable {
+  id: Generated<number>;
+  title: string;
+  date: string;
+  status: "active" | "finished" | "cancelled";
+  token: string;
+  scoreScale: number;
+  // "beginner" | "advanced"; null before formats (migration 024)
+  format: string | null;
+  // "all" | "sequential"; null before migration 025 (behaves as "all")
+  pacing: string | null;
+  hostUserId: string;
+  createdAt: string;
+  finishedAt: string | null;
+}
+
+export interface PartyBottleTable {
+  id: Generated<number>;
+  partyId: number;
+  bottleId: number | null;
+  vintageId: number;
+  label: string;
+  position: number;
+  pouredAt: string | null;
+  revealedAt: string | null;
+  broughtBy: string | null;
+  // 0/1 on every dialect (integer column, see migration 022)
+  wantToBuy: ColumnType<number, number | undefined, number>;
+  // JSON {winemakerId?, wineId?, vintageId?} the party created (migration 023)
+  createdRecords: string | null;
+}
+
+export interface PartyGuestTable {
+  id: Generated<number>;
+  partyId: number;
+  name: string;
+  nameKey: string;
+  secretHash: string;
+  userId: string | null;
+  createdAt: string;
+}
+
+// JSON fields are stored as strings (see migration 021).
+export interface PartyReviewTable {
+  id: Generated<number>;
+  partyId: number;
+  partyBottleId: number;
+  guestId: number;
+  score: number | null;
+  tags: string;
+  structure: string;
+  notes: string;
+  guesses: string;
+  // JSON format answers by field key (migration 024)
+  answers: string | null;
+  updatedAt: string;
+}
+
 export type SettingTable = Setting;
 
 export type PreferenceTable = Preference;
@@ -104,4 +162,8 @@ export interface Database {
   setting: SettingTable;
   preference: PreferenceTable;
   user: UserTable;
+  tastingParty: TastingPartyTable;
+  partyBottle: PartyBottleTable;
+  partyGuest: PartyGuestTable;
+  partyReview: PartyReviewTable;
 }

@@ -11,6 +11,7 @@ const counts = (overrides: Partial<BottleCounts>): BottleCounts => ({
   ordered: 0,
   stored: 0,
   "in-primeur": 0,
+  "in-tasting": 0,
   drunk: 0,
   sold: 0,
   gifted: 0,

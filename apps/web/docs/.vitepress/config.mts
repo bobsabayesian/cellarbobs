@@ -86,6 +86,7 @@ export default defineConfig({
           { text: "Storage Hierarchy", link: "/features/storage-hierarchy" },
           { text: "MCP Server", link: "/features/mcp" },
           { text: "Import from a Link", link: "/features/import" },
+          { text: "Tasting Parties", link: "/features/parties" },
         ],
       },
     ],

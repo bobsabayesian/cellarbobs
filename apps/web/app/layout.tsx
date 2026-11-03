@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
 import { AppSidebar } from "@/components/sidebar/AppSidebar";
 import { MobileHeader } from "@/components/sidebar/MobileHeader";
@@ -22,12 +22,21 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const sidebarOpen = cookieStore.get("sidebar_state")?.value !== "false";
   const isLoggedIn = !!cookieStore.get("better-auth.session_token")?.value;
+  // Party guest pages and the host's present screen are full-screen, without
+  // the sidebar, even for a logged-in host (see proxy.ts for x-pathname).
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const bare =
+    pathname.startsWith("/party/") || /^\/parties\/\d+\/present/.test(pathname);
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <Providers sidebarDefaultOpen={sidebarOpen}>
-          {isLoggedIn ? (
+          {bare ? (
+            <main className="min-h-screen w-full bg-muted">
+              <Suspense fallback={<LoadingCard />}>{children}</Suspense>
+            </main>
+          ) : isLoggedIn ? (
             <div className="flex min-h-screen w-full">
               <AppSidebar />
               <main className="flex-1 p-4 md:p-10 bg-muted">

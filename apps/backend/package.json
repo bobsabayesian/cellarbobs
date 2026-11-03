@@ -14,6 +14,7 @@
     "seed": "tsx src/utils/seed-cli.ts",
     "generate:docs": "tsx scripts/generate-docs.ts",
     "import:recon": "tsx scripts/import-recon.ts",
+    "import:cellartracker": "tsx scripts/import-cellartracker.ts",
     "lint": "eslint --max-warnings 0"
   },
   "dependencies": {
@@ -39,6 +40,7 @@
     "kysely-ctl": "0.22.0",
     "loglayer": "9.4.0",
     "mysql2": "3.24.6",
+    "pdfkit": "0.15.2",
     "pg": "8.23.1",
     "pino": "10.4.0",
     "serialize-error": "13.0.2",
@@ -50,6 +52,7 @@
     "@eslint/js": "10.0.1",
     "@types/better-sqlite3": "9.6.0",
     "@types/node": "26.6.5",
+    "@types/pdfkit": "0.13.9",
     "@types/pg": "8.23.1",
     "@vitest/coverage-v8": "5.0.5",
     "@vitest/ui": "5.0.5",

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import * as z from "zod";
-import type { ImportPreview } from "@cellarboss/types";
+import type { ImportCommit, ImportPreview } from "@cellarboss/types";
+import { Plus } from "lucide-react";
 import { WINE_TYPES } from "@cellarboss/validators/constants";
 import { vintageFormValidators } from "@cellarboss/validators/vintages.validator";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,6 +71,14 @@ const vintageSchema = z.object({
 type ImportFormProps = {
   /** The preview to fill the form from, or null to start blank. */
   preview: ImportPreview | null;
+  /**
+   * Hands the commit to the caller instead of saving it and opening the
+   * vintage, e.g. so a tasting party creates the wine with the party.
+   * Returns an error message, or null when accepted.
+   */
+  onCommit?: (commit: ImportCommit, label: string) => Promise<string | null>;
+  /** Submit button text when onCommit is set. */
+  commitLabel?: string;
 };
 
 /**
@@ -78,7 +87,11 @@ type ImportFormProps = {
  * already in the cellar. The page shows a vintage that already exists instead
  * of this form.
  */
-export function ImportForm({ preview }: ImportFormProps) {
+export function ImportForm({
+  preview,
+  onCommit,
+  commitLabel = "Add",
+}: ImportFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const existingWine = preview?.existing.wine ?? null;
@@ -107,12 +120,22 @@ export function ImportForm({ preview }: ImportFormProps) {
       setIsProcessing(true);
       setErrorMessage(null);
       try {
-        const result = await commitImport(
-          buildCommit(
-            value as ImportFormValues,
-            addToExisting && existingWine ? existingWine.id : undefined,
-          ),
+        const values = value as ImportFormValues;
+        const commit = buildCommit(
+          values,
+          addToExisting && existingWine ? existingWine.id : undefined,
         );
+        if (onCommit) {
+          const name =
+            addToExisting && existingWine ? existingWine.name : values.name;
+          const refused = await onCommit(
+            commit,
+            `${name} ${values.year || "NV"}`.trim(),
+          );
+          if (refused) setErrorMessage(refused);
+          return;
+        }
+        const result = await commitImport(commit);
         if (!result.ok) {
           setErrorMessage(result.error.message);
           return;
@@ -334,7 +357,18 @@ export function ImportForm({ preview }: ImportFormProps) {
       </Card>
 
       <span className="flex items-center gap-4 mt-4">
-        <SaveButton isProcessing={isProcessing} />
+        {onCommit ? (
+          <Button
+            type="submit"
+            variant="outline"
+            size="lg"
+            disabled={isProcessing}
+          >
+            <Plus /> {commitLabel}
+          </Button>
+        ) : (
+          <SaveButton isProcessing={isProcessing} />
+        )}
         {errorMessage && (
           <span className="mx-2 text-red-600">{errorMessage}</span>
         )}

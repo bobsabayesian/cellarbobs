@@ -352,11 +352,23 @@ export class ImportCommitError extends Error {
 type Trx = Transaction<Database>;
 type NamedTable = "winemaker" | "country" | "grape";
 
+/**
+ * Ids of the records a commit inserted (not ones it reused), so a caller
+ * such as a cancelled tasting party can remove exactly what it created.
+ * Countries, regions and grapes aren't tracked: they're shared reference data.
+ */
+export interface CreatedRecords {
+  winemakerId?: number;
+  wineId?: number;
+  vintageId?: number;
+}
+
 /** An existing id (checked), or the id of a record with that name, created if needed. */
 async function resolveRef(
   trx: Trx,
   table: NamedTable,
   ref: ImportEntityRef,
+  onCreate?: (id: number) => void,
 ): Promise<number> {
   if ("id" in ref) {
     const row = await trx
@@ -376,6 +388,7 @@ async function resolveRef(
   const match = rows.find((row) => foldKey(row.name) === key);
   if (match) return match.id;
   const created = await insertReturning(trx, table, { name: ref.name.trim() });
+  onCreate?.(created.id);
   return created.id;
 }
 
@@ -413,6 +426,7 @@ async function resolveRegion(
 async function resolveWine(
   trx: Trx,
   wine: ImportCommit["wine"],
+  track: CreatedRecords,
 ): Promise<number> {
   if ("id" in wine) {
     const row = await trx
@@ -424,7 +438,12 @@ async function resolveWine(
     return row.id;
   }
 
-  const wineMakerId = await resolveRef(trx, "winemaker", wine.winemaker);
+  const wineMakerId = await resolveRef(
+    trx,
+    "winemaker",
+    wine.winemaker,
+    (id) => (track.winemakerId = id),
+  );
   const countryId = wine.country
     ? await resolveRef(trx, "country", wine.country)
     : null;
@@ -447,6 +466,7 @@ async function resolveWine(
     wineMakerId,
     regionId,
   });
+  track.wineId = created.id;
 
   const grapeIds = new Set<number>();
   for (const grape of wine.grapes)
@@ -461,32 +481,45 @@ async function resolveWine(
 }
 
 /**
- * Creates everything an import needs in one transaction: winemaker, country,
- * region and grapes when new, then the wine and vintage. If the vintage
- * already exists nothing is created and its id is returned.
+ * Creates everything an import needs inside the caller's transaction:
+ * winemaker, country, region and grapes when new, then the wine and vintage.
+ * If the vintage already exists nothing is created and its id is returned.
+ * `createdRecords` lists the winemaker, wine and vintage it inserted.
  */
+export async function commitWithin(
+  trx: Trx,
+  input: ImportCommit,
+): Promise<ImportCommitResult & { createdRecords: CreatedRecords }> {
+  const createdRecords: CreatedRecords = {};
+  const wineId = await resolveWine(trx, input.wine, createdRecords);
+  const { year, drinkFrom, drinkUntil } = input.vintage;
+
+  let query = trx
+    .selectFrom("vintage")
+    .select("id")
+    .where("wineId", "=", wineId);
+  query =
+    year === null
+      ? query.where("year", "is", null)
+      : query.where("year", "=", year);
+  const existing = await query.executeTakeFirst();
+  if (existing)
+    return { wineId, vintageId: existing.id, created: false, createdRecords };
+
+  const vintage = await insertReturning(trx, "vintage", {
+    wineId,
+    year,
+    drinkFrom,
+    drinkUntil,
+  });
+  createdRecords.vintageId = vintage.id;
+  return { wineId, vintageId: vintage.id, created: true, createdRecords };
+}
+
+/** commitWithin in its own transaction, for the import page. */
 export async function commit(input: ImportCommit): Promise<ImportCommitResult> {
   return await db.transaction().execute(async (trx) => {
-    const wineId = await resolveWine(trx, input.wine);
-    const { year, drinkFrom, drinkUntil } = input.vintage;
-
-    let query = trx
-      .selectFrom("vintage")
-      .select("id")
-      .where("wineId", "=", wineId);
-    query =
-      year === null
-        ? query.where("year", "is", null)
-        : query.where("year", "=", year);
-    const existing = await query.executeTakeFirst();
-    if (existing) return { wineId, vintageId: existing.id, created: false };
-
-    const vintage = await insertReturning(trx, "vintage", {
-      wineId,
-      year,
-      drinkFrom,
-      drinkUntil,
-    });
-    return { wineId, vintageId: vintage.id, created: true };
+    const { wineId, vintageId, created } = await commitWithin(trx, input);
+    return { wineId, vintageId, created };
   });
 }

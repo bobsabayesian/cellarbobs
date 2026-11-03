@@ -20,6 +20,12 @@ export const env = z
     // proxy: http://, https:// or socks5://. HTTPS_PROXY and NO_PROXY are
     // honoured for import requests when this is unset.
     IMPORT_PROXY_URL: z.url().optional(),
+    // JSON file of the quick-tap tags guests pick at tasting parties. Created
+    // with the defaults if missing; edits apply without a restart.
+    PARTY_TAGS_FILE: z.string().optional(),
+    // Folder of tasting format files (beginner.json, advanced.json). Missing
+    // files are written with the defaults; edits apply without a restart.
+    PARTY_FORMATS_DIR: z.string().optional(),
     UPLOAD_DIR: z
       .string()
       .refine((p) => existsSync(p), {

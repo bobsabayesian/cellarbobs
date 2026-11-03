@@ -9,6 +9,9 @@ import {
   listEnrichedBottles,
   getEnrichedBottle,
 } from "./queries.js";
+import * as partiesController from "@controllers/parties.controller.js";
+import * as palateController from "@controllers/palate.controller.js";
+import { PartyError } from "@controllers/parties.controller.js";
 import { env } from "@utils/env.js";
 
 function jsonResult(data: unknown) {
@@ -23,6 +26,13 @@ function notFoundResult(entity: string, id: number) {
 }
 
 const readOnly = { readOnlyHint: true };
+
+/** The guest join token is a credential; MCP clients never need it. */
+function withoutToken<T extends { token: string }>(party: T): Omit<T, "token"> {
+  const copy: Partial<T> = { ...party };
+  delete copy.token;
+  return copy as Omit<T, "token">;
+}
 
 // A fresh McpServer must be created per request rather than shared as a
 // singleton: the SDK's Protocol.connect() throws if called on an instance
@@ -172,6 +182,87 @@ export function createMcpServer() {
       annotations: readOnly,
     },
     async ({ id }) => jsonResult(await tastingNotesController.getByWineId(id)),
+  );
+
+  // --- Party Mode: blind tastings and the palate profile -------------------
+
+  mcpServer.registerTool(
+    "list_tasting_parties",
+    {
+      description:
+        "List blind tasting parties (newest first) with their date, status (active/finished/cancelled), score scale and counts of bottles, guests and reviews",
+      annotations: readOnly,
+    },
+    async () => jsonResult((await partiesController.list()).map(withoutToken)),
+  );
+
+  mcpServer.registerTool(
+    "get_tasting_party",
+    {
+      description:
+        "Get one blind tasting party: each bottle's blind label (A, B, ...) with the real wine behind it (bottleId null and broughtBy set when a guest brought it; wantToBuy when the owner flagged it), every guest, and every review (score out of 100, tags, structure 1-5 for acidity/tannin/body/oak, notes, guesses, and answers keyed by the party's tasting format, whose questions are in formatDef). Guests with isHost true are the cellar owner",
+      inputSchema: { id: z.number().int() },
+      annotations: readOnly,
+    },
+    async ({ id }) => {
+      try {
+        return jsonResult(withoutToken(await partiesController.getDetail(id)));
+      } catch (err) {
+        if (err instanceof PartyError) return notFoundResult("Party", id);
+        throw err;
+      }
+    },
+  );
+
+  mcpServer.registerTool(
+    "list_want_to_buy",
+    {
+      description:
+        "Wines from blind tasting parties the cellar owner flagged as 'want to buy' (usually bottles guests brought), with who brought each, the owner's blind score and the group average (out of 100). Use for shopping lists or 'what was that wine Dave brought?'",
+      annotations: readOnly,
+    },
+    async () => jsonResult(await partiesController.wantToBuyList()),
+  );
+
+  mcpServer.registerTool(
+    "get_palate_profile",
+    {
+      description:
+        "The cellar owner's palate from blind tastings: mean blind score (out of 100) grouped by wine type, country, region, grape, age at tasting, structure level (e.g. 'tannin: high'), tasting tag, and byAttribute: answers from the beginner/advanced tasting formats (e.g. 'Finish length: long', 'Tannin feels: grippy'). delta is the difference from the owner's overall mean, so positive means they score that group higher than usual. Optional filters narrow the reviews first, e.g. grape 'Nebbiolo' with minAge 6 for older Barolo/Barbaresco",
+      inputSchema: {
+        grape: z.string().optional(),
+        region: z.string().optional(),
+        country: z.string().optional(),
+        type: z.string().optional(),
+        minAge: z.number().int().optional(),
+        maxAge: z.number().int().optional(),
+      },
+      annotations: readOnly,
+    },
+    async (filter) =>
+      jsonResult(await palateController.profile(undefined, filter)),
+  );
+
+  mcpServer.registerTool(
+    "get_taster_calibration",
+    {
+      description:
+        "How each guest's blind scores line up with the cellar owner's on the same bottles (needs 3+ shared bottles): Pearson correlation, mean offset (positive = scores higher than the owner), mean absolute error and a suggested weight (0-1) for trusting their scores",
+      annotations: readOnly,
+    },
+    async () => jsonResult(await palateController.calibration()),
+  );
+
+  mcpServer.registerTool(
+    "get_guess_accuracy",
+    {
+      description:
+        "Blind guessing accuracy per field (grape, region, country, vintage within one year), for everyone or for one taster by name",
+      inputSchema: { taster: z.string().optional() },
+      annotations: readOnly,
+    },
+    async ({ taster }) =>
+      jsonResult(await palateController.accuracy(undefined, taster)),
   );
 
   return mcpServer;

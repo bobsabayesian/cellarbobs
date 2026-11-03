@@ -1,13 +1,22 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const publicRoutes = ["/login", "/api/auth"];
+// /party/<token> is the guest page for blind tastings: no login, the token is
+// the credential (see lib/api/party-public.ts).
+const publicRoutes = ["/login", "/api/auth", "/party/"];
+
+/** Passes the path to the root layout, which renders some pages bare. */
+function next(request: NextRequest) {
+  const headers = new Headers(request.headers);
+  headers.set("x-pathname", request.nextUrl.pathname);
+  return NextResponse.next({ request: { headers } });
+}
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (publicRoutes.some((route) => pathname.startsWith(route))) {
-    return NextResponse.next();
+    return next(request);
   }
 
   const sessionToken = request.cookies.get("better-auth.session_token");
@@ -18,7 +27,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return next(request);
 }
 
 export const config = {

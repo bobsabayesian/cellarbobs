@@ -73,3 +73,23 @@ export function expandNamePattern(name: string): string[] {
   expandNamePatternImpl(name, results);
   return results;
 }
+
+/** Lower-cased, accent-free text for search: "López" matches "lopez". */
+export function searchKey(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+/**
+ * "Winemaker Wine" for display, without repeating the producer when the wine
+ * is named after it ("Château Le Gay" by "Château Le Gay" shows once).
+ */
+export function wineDisplayName(
+  winemaker: string | undefined,
+  wine: string,
+): string {
+  if (!winemaker) return wine;
+  const maker = searchKey(winemaker).trim();
+  const name = searchKey(wine).trim();
+  if (name === maker || name.startsWith(`${maker} `)) return wine;
+  return `${winemaker} ${wine}`;
+}

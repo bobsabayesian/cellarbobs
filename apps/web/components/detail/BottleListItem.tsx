@@ -22,6 +22,7 @@ const STATUS_VARIANT: Record<
   stored: "default",
   ordered: "secondary",
   "in-primeur": "secondary",
+  "in-tasting": "secondary",
   drunk: "outline",
   sold: "outline",
   gifted: "outline",

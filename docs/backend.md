@@ -80,7 +80,7 @@ The API is OpenAPI-first, using `@hono/zod-openapi` for spec generation. CRUD ro
 
 ## MCP Server
 
-An optional [Model Context Protocol](https://modelcontextprotocol.io) server can be mounted at `/mcp`, gated by the `MCP_ENABLED` environment variable (default `false`). When enabled, it exposes twelve read-only tools:
+An optional [Model Context Protocol](https://modelcontextprotocol.io) server can be mounted at `/mcp`, gated by the `MCP_ENABLED` environment variable (default `false`). When enabled, it exposes eighteen read-only tools (the six Party Mode tools are listed in the web docs, `apps/web/docs/features/mcp.md`):
 
 | Tool                                                           | Shape                                                                                                                                                                                            |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

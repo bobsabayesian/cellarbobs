@@ -10,6 +10,8 @@ import {
   MapPin,
   ChevronRight,
   BottleWine,
+  GlassWater,
+  PartyPopper,
 } from "lucide-react";
 import { getBottleById, deleteBottle, updateBottle } from "@/lib/api/bottles";
 import { getVintages } from "@/lib/api/vintages";
@@ -20,6 +22,7 @@ import { getCountries } from "@/lib/api/countries";
 import { getStorages } from "@/lib/api/storages";
 import { getStorageAncestry } from "@cellarboss/common/storages";
 import { getLocations } from "@/lib/api/locations";
+import { getPartiesForBottle } from "@/lib/api/parties";
 import { PageHeader } from "@/components/page/PageHeader";
 import { DetailCard } from "@/components/detail/DetailCard";
 import { DetailRow } from "@/components/detail/DetailRow";
@@ -91,6 +94,13 @@ export default function ViewBottlePage() {
   const locationsQuery = useApiQuery({
     queryKey: ["locations"],
     queryFn: getLocations,
+  });
+
+  // Not gated: the page works the same without party info.
+  const partiesQuery = useApiQuery({
+    queryKey: ["bottleParties", bottleId],
+    queryFn: () => getPartiesForBottle(bottleId),
+    enabled: !!bottleId,
   });
 
   const result = queryGate([
@@ -213,6 +223,43 @@ export default function ViewBottlePage() {
                 : "-"}
             </DetailRow>
           </DetailCard>
+
+          {(partiesQuery.data ?? []).map((p) => (
+            <DetailCard key={p.id} heading="Tasting party" icon={PartyPopper}>
+              <DetailRow icon={PartyPopper}>
+                <Link
+                  href={`/parties/${p.id}`}
+                  className="text-primary hover:underline"
+                >
+                  {p.title}
+                </Link>
+              </DetailRow>
+              <p className="text-sm text-muted-foreground">
+                {p.date} · bottle {p.label}
+                {p.broughtBy ? ` · brought by ${p.broughtBy}` : ""} ·{" "}
+                {p.status === "active"
+                  ? "being tasted now"
+                  : p.status === "finished"
+                    ? "tasted"
+                    : "cancelled"}
+              </p>
+            </DetailCard>
+          ))}
+
+          {(bottle.consumedDate || bottle.consumedNote) && (
+            <DetailCard heading="Consumed" icon={GlassWater}>
+              {bottle.consumedDate && (
+                <DetailRow icon={Calendar}>
+                  {formatDate(bottle.consumedDate, String(dateFormat))}
+                </DetailRow>
+              )}
+              {bottle.consumedNote && (
+                <p className="text-sm whitespace-pre-wrap">
+                  {bottle.consumedNote}
+                </p>
+              )}
+            </DetailCard>
+          )}
 
           {storagePath.length > 0 && (
             <DetailCard heading="Storage" icon={Refrigerator}>

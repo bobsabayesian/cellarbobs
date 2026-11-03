@@ -71,6 +71,21 @@ All tools are read-only and return JSON.
 | `get_tasting_notes_for_vintage` | Lists tasting notes for a specific vintage (by vintage id, as returned by `list_wines`) |
 | `get_tasting_notes_for_wine`    | Lists tasting notes across every vintage of a wine (by wine id)                         |
 
+### Tasting Parties
+
+| Tool                     | Description                                                                                                                                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_tasting_parties`   | Lists [tasting parties](/features/parties) with their status, score scale and counts of bottles, guests and reviews                                                                                 |
+| `get_tasting_party`      | Gets one party: each blind label with the real wine behind it, every guest, and every review (score out of 100, tags, structure, notes, guesses)                                                    |
+| `list_want_to_buy`       | Party wines flagged "want to buy" (usually guest bottles), with who brought each, the owner's blind score and the group average                                                                     |
+| `get_palate_profile`     | The cellar owner's mean blind score by type, country, region, grape, age at tasting, structure level and tag, relative to their overall mean. Filters: grape, region, country, type, minAge, maxAge |
+| `get_taster_calibration` | How each guest's scores correlate with the owner's on shared bottles (needs 3+), with mean offset and a suggested weight                                                                            |
+| `get_guess_accuracy`     | Blind guessing hit rate for grape, region, country and vintage (within a year), for everyone or one taster                                                                                          |
+
+For example: _"Based on my blind tastings, how do I rate Nebbiolo with 6+ years of age compared to younger ones?"_ The assistant calls `get_palate_profile` with `grape: "Nebbiolo"` and `minAge: 6`, then again with `maxAge: 5`.
+
+The guest join token is never included in MCP output.
+
 ::: info
 Tasting note text is deliberately left out of `list_wines`/`get_wine` — only the average score and note count are included there. An assistant needs to call one of the tasting note tools to read the actual note content.
 :::
