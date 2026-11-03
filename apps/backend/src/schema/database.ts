@@ -31,6 +31,16 @@ export interface GrapeTable extends Omit<Grape, "id"> {
 
 export interface LocationTable extends Omit<Location, "id"> {
   id: Generated<number>;
+  /** Who added it, so they see it before any storage in it is visible. */
+  createdBy?: string | null;
+}
+
+export interface StorageAccessTable {
+  id: Generated<number>;
+  storageId: number;
+  userId: string;
+  level: "view" | "edit";
+  createdAt: string;
 }
 
 export interface RegionTable extends Omit<Region, "id"> {
@@ -187,6 +197,7 @@ export interface Database {
   location: LocationTable;
   region: RegionTable;
   storage: StorageTable;
+  storageAccess: StorageAccessTable;
   vintage: VintageTable;
   wine: WineTable;
   winegrape: WineGrapeTable;

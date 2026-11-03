@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { NoResultError } from "kysely";
+import { AccessError } from "@utils/access.js";
 
 function isUniqueConstraintError(
   err: Error & { code?: unknown; errno?: unknown },
@@ -15,6 +16,10 @@ function isUniqueConstraintError(
 
 export function errorHandler(err: Error, c: Context) {
   c.var.logger?.withError(err).error(`[${c.req.method}] ${c.req.path}`);
+
+  if (err instanceof AccessError) {
+    return c.json({ error: err.message }, err.status);
+  }
 
   if (err instanceof NoResultError) {
     return c.json({ error: "Not found" }, 404);

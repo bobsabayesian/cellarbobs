@@ -11,6 +11,7 @@ import type {
 } from "@cellarboss/types";
 import type { Database } from "@schema/database.js";
 import { db } from "@utils/database.js";
+import { currentViewer, visibleStorageIdsFor } from "@utils/access.js";
 import { insertReturning } from "@utils/query-helpers.js";
 import {
   getPartyWines,
@@ -55,13 +56,21 @@ function toLink(row: Selectable<Database["shareLink"]>): ShareLink {
   };
 }
 
+/** Everyone but the admin sees only the links they made. */
+function creatorScope(): string | null {
+  const viewer = currentViewer();
+  return viewer && !viewer.isAdmin ? viewer.id : null;
+}
+
 async function requireLink(id: number) {
   const row = await db
     .selectFrom("shareLink")
     .selectAll()
     .where("id", "=", id)
     .executeTakeFirst();
-  if (!row) throw new ShareError("Link not found", 404);
+  const creator = creatorScope();
+  if (!row || (creator && row.createdBy !== creator))
+    throw new ShareError("Link not found", 404);
   return row;
 }
 
@@ -109,11 +118,10 @@ export async function create(
 }
 
 export async function list(): Promise<ShareLinkSummary[]> {
-  const links = await db
-    .selectFrom("shareLink")
-    .selectAll()
-    .orderBy("createdAt", "desc")
-    .execute();
+  const creator = creatorScope();
+  let linksQuery = db.selectFrom("shareLink").selectAll();
+  if (creator) linksQuery = linksQuery.where("createdBy", "=", creator);
+  const links = await linksQuery.orderBy("createdAt", "desc").execute();
   const count = async (table: "shareGuest" | "shareMark") =>
     new Map(
       (
@@ -323,11 +331,14 @@ export async function sharedCellar(
         .executeTakeFirst()
     : undefined;
 
-  const bottles = await db
+  // Only what the link's creator can see, checked each time it's opened.
+  const visible = await visibleStorageIdsFor(link.createdBy);
+  let bottleQuery = db
     .selectFrom("bottle")
     .select(["id", "vintageId", "storageId"])
-    .where("status", "=", "stored")
-    .execute();
+    .where("status", "=", "stored");
+  if (visible) bottleQuery = bottleQuery.where("storageId", "in", visible);
+  const bottles = await bottleQuery.execute();
   const marks = await db
     .selectFrom("shareMark")
     .innerJoin("shareGuest", "shareGuest.id", "shareMark.guestId")
@@ -430,6 +441,7 @@ export async function mark(
 ): Promise<void> {
   const link = await activeByToken(token);
   const guest = await guestFor(link.id, secret);
+  const visible = await visibleStorageIdsFor(link.createdBy);
   await db.transaction().execute(async (trx) => {
     if (link.maxMarks !== null) {
       const used = await trx
@@ -443,15 +455,15 @@ export async function mark(
           409,
         );
     }
-    const free = await trx
+    let freeQuery = trx
       .selectFrom("bottle")
       .leftJoin("shareMark", "shareMark.bottleId", "bottle.id")
       .select("bottle.id as id")
       .where("bottle.vintageId", "=", vintageId)
       .where("bottle.status", "=", "stored")
-      .where("shareMark.id", "is", null)
-      .orderBy("bottle.id")
-      .executeTakeFirst();
+      .where("shareMark.id", "is", null);
+    if (visible) freeQuery = freeQuery.where("bottle.storageId", "in", visible);
+    const free = await freeQuery.orderBy("bottle.id").executeTakeFirst();
     if (!free)
       throw new ShareError("No bottles of this wine are left to mark", 409);
     await insertReturning(trx, "shareMark", {

@@ -9,7 +9,14 @@ export type { Country, CreateCountry, UpdateCountry } from "./country";
 export type { Grape, CreateGrape, UpdateGrape } from "./grape";
 export type { Location, CreateLocation, UpdateLocation } from "./location";
 export type { Region, CreateRegion, UpdateRegion } from "./region";
-export type { Storage, CreateStorage, UpdateStorage } from "./storage";
+export type {
+  Storage,
+  CreateStorage,
+  UpdateStorage,
+  AccessLevel,
+  StorageGrant,
+  StorageAccessOverview,
+} from "./storage";
 export type {
   Vintage,
   VintageDetail,

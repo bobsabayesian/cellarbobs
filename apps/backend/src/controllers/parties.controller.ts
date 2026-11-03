@@ -21,6 +21,11 @@ import type {
 } from "@cellarboss/types";
 import type { Database } from "@schema/database.js";
 import { db } from "@utils/database.js";
+import {
+  currentViewer,
+  ensurePersonalStorage,
+  requireStorage,
+} from "@utils/access.js";
 import { insertReturning } from "@utils/query-helpers.js";
 import { foldKey } from "../import/normalise/text.js";
 import { commitWithin, type CreatedRecords } from "./import.controller.js";
@@ -247,6 +252,8 @@ async function createGuestBottle(
   trx: Trx,
   party: Pick<TastingParty, "date">,
   input: GuestBottleInput,
+  // The host's personal storage, so the bottle is seen by whoever sees the party.
+  storageId: number | null,
 ): Promise<GuestEntry> {
   const created: CreatedRecords = {};
   let vintageId: number;
@@ -263,7 +270,7 @@ async function createGuestBottle(
     vintageId,
     purchaseDate: party.date,
     purchasePrice: 0,
-    storageId: null,
+    storageId,
     status: "in-tasting",
     size: "standard",
   });
@@ -348,8 +355,16 @@ async function requireParty(
     .selectAll()
     .where("id", "=", id)
     .executeTakeFirst();
-  if (!row) throw new PartyError("Party not found", 404);
+  const hostId = hostScope();
+  if (!row || (hostId && row.hostUserId !== hostId))
+    throw new PartyError("Party not found", 404);
   return toParty(row);
+}
+
+/** The host id to limit to: everyone but the admin sees only their own parties. */
+function hostScope(): string | null {
+  const viewer = currentViewer();
+  return viewer && !viewer.isAdmin ? viewer.id : null;
 }
 
 function requireActive(party: TastingParty) {
@@ -363,6 +378,18 @@ export async function create(
   data: CreateParty,
   host: { id: string; name: string },
 ): Promise<PartyDetail> {
+  // Checked before the transaction: access lookups use their own connection.
+  const guestStorage = data.guestBottles?.length
+    ? await ensurePersonalStorage(host.id)
+    : null;
+  if (data.bottleIds.length) {
+    const storages = await db
+      .selectFrom("bottle")
+      .select("storageId")
+      .where("id", "in", data.bottleIds)
+      .execute();
+    for (const b of storages) await requireStorage(b.storageId, "edit");
+  }
   const partyId = await db.transaction().execute(async (trx) => {
     const bottles = data.bottleIds.length
       ? await trx
@@ -407,7 +434,7 @@ export async function create(
       createdRecords: null,
     }));
     for (const guest of data.guestBottles ?? [])
-      entries.push(await createGuestBottle(trx, party, guest));
+      entries.push(await createGuestBottle(trx, party, guest, guestStorage));
 
     // Labels in a random order, so A-B-C doesn't give away the shelf order
     // or which bottles the guests brought.
@@ -448,6 +475,8 @@ export async function addGuestBottle(
   id: number,
   input: GuestBottleInput,
 ): Promise<PartyDetail> {
+  const viewer = currentViewer();
+  const guestStorage = viewer ? await ensurePersonalStorage(viewer.id) : null;
   await db.transaction().execute(async (trx) => {
     const party = await requireParty(id, trx);
     requireActive(party);
@@ -465,7 +494,7 @@ export async function addGuestBottle(
       );
     await insertReturning(trx, "partyBottle", {
       partyId: id,
-      ...(await createGuestBottle(trx, party, input)),
+      ...(await createGuestBottle(trx, party, input, guestStorage)),
       label,
       position: Math.max(-1, ...existing.map((b) => b.position)) + 1,
       pouredAt: party.pacing === "sequential" ? null : new Date().toISOString(),
@@ -535,9 +564,10 @@ export async function setWantToBuy(
 }
 
 export async function list(): Promise<PartySummary[]> {
-  const parties = await db
-    .selectFrom("tastingParty")
-    .selectAll()
+  const hostId = hostScope();
+  let partiesQuery = db.selectFrom("tastingParty").selectAll();
+  if (hostId) partiesQuery = partiesQuery.where("hostUserId", "=", hostId);
+  const parties = await partiesQuery
     .orderBy("date", "desc")
     .orderBy("id", "desc")
     .execute();
@@ -981,7 +1011,8 @@ export async function guestNotes(token: string, secret: string | undefined) {
 export async function partiesForBottle(
   bottleId: number,
 ): Promise<BottleParty[]> {
-  const rows = await db
+  const hostId = hostScope();
+  let query = db
     .selectFrom("partyBottle")
     .innerJoin("tastingParty", "tastingParty.id", "partyBottle.partyId")
     .select([
@@ -992,9 +1023,9 @@ export async function partiesForBottle(
       "partyBottle.label as label",
       "partyBottle.broughtBy as broughtBy",
     ])
-    .where("partyBottle.bottleId", "=", bottleId)
-    .orderBy("tastingParty.date", "desc")
-    .execute();
+    .where("partyBottle.bottleId", "=", bottleId);
+  if (hostId) query = query.where("tastingParty.hostUserId", "=", hostId);
+  const rows = await query.orderBy("tastingParty.date", "desc").execute();
   return rows.map((r) => ({ ...r, status: r.status as BottleParty["status"] }));
 }
 
@@ -1150,7 +1181,8 @@ function attributesOf(format: string | null, answers: PartyAnswers): string[] {
 
 /** Reviews of revealed bottles in finished or active parties. */
 export async function reviewRows(): Promise<ReviewRow[]> {
-  const rows = await db
+  const hostId = hostScope();
+  let reviewQuery = db
     .selectFrom("partyReview")
     .innerJoin("partyBottle", "partyBottle.id", "partyReview.partyBottleId")
     .innerJoin("tastingParty", "tastingParty.id", "partyReview.partyId")
@@ -1171,8 +1203,10 @@ export async function reviewRows(): Promise<ReviewRow[]> {
       "partyGuest.nameKey as guestKey",
       "partyGuest.userId as guestUserId",
     ])
-    .where("tastingParty.status", "!=", "cancelled")
-    .execute();
+    .where("tastingParty.status", "!=", "cancelled");
+  if (hostId)
+    reviewQuery = reviewQuery.where("tastingParty.hostUserId", "=", hostId);
+  const rows = await reviewQuery.execute();
   const visible = rows.filter(
     (r) => r.partyStatus === "finished" || r.revealedAt !== null,
   );
@@ -1285,7 +1319,8 @@ export async function exportCsv(): Promise<string> {
 
 /** Party wines the host flagged to buy, newest party first, with scores. */
 export async function wantToBuyList(): Promise<WantToBuyWine[]> {
-  const flagged = await db
+  const hostId = hostScope();
+  let flaggedQuery = db
     .selectFrom("partyBottle")
     .innerJoin("tastingParty", "tastingParty.id", "partyBottle.partyId")
     .select([
@@ -1298,7 +1333,10 @@ export async function wantToBuyList(): Promise<WantToBuyWine[]> {
       "tastingParty.title as partyTitle",
       "tastingParty.date as partyDate",
     ])
-    .where("partyBottle.wantToBuy", "=", 1)
+    .where("partyBottle.wantToBuy", "=", 1);
+  if (hostId)
+    flaggedQuery = flaggedQuery.where("tastingParty.hostUserId", "=", hostId);
+  const flagged = await flaggedQuery
     .orderBy("tastingParty.date", "desc")
     .execute();
   if (flagged.length === 0) return [];

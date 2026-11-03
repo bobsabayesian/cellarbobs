@@ -5,6 +5,7 @@ import {
   createTestAppWithAuth,
   runMigrations,
   cleanDatabase,
+  createTestUser,
 } from "./setup";
 import { registerLocationRoutes } from "@routes/locations.routes.js";
 import { db } from "@utils/database.js";
@@ -13,6 +14,8 @@ describe("Location API", () => {
   beforeAll(async () => {
     await runMigrations(db);
     await cleanDatabase(db);
+    // Created storages and locations record who made them (a real user).
+    await createTestUser(db);
   });
   describe("without auth", () => {
     let app: OpenAPIHono;

@@ -10,6 +10,7 @@ import {
   BottleWine,
   ClipboardList,
   Truck,
+  KeyRound,
   Link2,
   PartyPopper,
   Settings,
@@ -128,7 +129,10 @@ const settingsItems = [
   { title: "Application Settings", url: "/settings", icon: Settings },
 ];
 
-const adminItems = [{ title: "Users", url: "/users", icon: Users }];
+const adminItems = [
+  { title: "Users", url: "/users", icon: Users },
+  { title: "Storage access", url: "/access", icon: KeyRound },
+];
 
 function getInitials(name: string) {
   return name

@@ -418,7 +418,14 @@ describe("Party API", () => {
       for (const b of party.bottles) {
         expect(b.bottleId).not.toBeNull();
         const row = await guestBottleRow(party.id, b.label);
-        expect(row).toMatchObject({ status: "in-tasting", storageId: null });
+        // Kept in the host's personal storage so whoever sees the party sees it.
+        expect(row.status).toBe("in-tasting");
+        const home = await db
+          .selectFrom("storage")
+          .select("personalFor")
+          .where("id", "=", row.storageId)
+          .executeTakeFirstOrThrow();
+        expect(home.personalFor).toBe("test-user-1");
         expect(Number(row.price)).toBe(0);
       }
       expect(

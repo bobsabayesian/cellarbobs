@@ -7,6 +7,7 @@ import {
 } from "@cellarboss/validators";
 import { requireAuth } from "@middleware/auth.middleware.js";
 import { parseId } from "@utils/id.js";
+import { errorHandler } from "@middleware/error.middleware.js";
 import { TastingNoteError } from "@controllers/tasting-notes.controller.js";
 import { createCrudRoutes, jsonContent } from "@openapi/helpers.js";
 import { tastingNoteResponseSchema, errorSchema } from "@openapi/schemas.js";
@@ -70,7 +71,7 @@ export function registerTastingNoteRoutes(app: OpenAPIHono) {
   tastingNote.onError((err, c) => {
     if (err instanceof TastingNoteError)
       return c.json({ error: err.message }, 400);
-    throw err;
+    return errorHandler(err, c);
   });
 
   // Registered before /{id} so "formats" isn't read as an id.

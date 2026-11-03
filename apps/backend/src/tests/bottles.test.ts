@@ -5,6 +5,7 @@ import {
   createTestAppWithAuth,
   runMigrations,
   cleanDatabase,
+  createTestUser,
   createTestVintage,
   createTestWine,
   createTestWineMaker,
@@ -18,6 +19,8 @@ describe("Bottle API", () => {
   beforeAll(async () => {
     await runMigrations(db);
     await cleanDatabase(db);
+    // Created storages and locations record who made them (a real user).
+    await createTestUser(db);
   });
 
   describe("without auth", () => {

@@ -51,6 +51,8 @@ Built, with beginner and advanced formats as editable files in `PARTY_FORMATS_DI
 
 ### Steps (each can ship on its own)
 
+**Step 1 is built** (see `apps/web/docs/features/family-access.md`): storage access, personal storages, bottle scoping and the admin screen. Parties and links are visible only to their creator for now. Steps 2 and 3 below remain.
+
 1. **Storage access and bottle scoping.** Migration with `storageAccess` and personal storages. One backend helper, `visibleStorages(user)`, applied to every query that touches bottles or storages: bottles, storages and locations, vintage and wine embedded counts, dashboard and cellar value, Pending, Consumed, capacity, import and the receive and move pickers. Write checks (view vs edit) on bottle and storage mutations. The admin screen assigns each user None, View or Edit per storage, as a tree. It's reachable from the Users page and from each storage's "Who has access".
 2. **Catalog visibility.** `createdBy` on the catalog tables, the visibility rule above in the list and detail endpoints, and reuse of hidden duplicates on create.
 3. **Parties and links.** The access tables, their admin screens, and links limited to the creator's view.
@@ -59,10 +61,10 @@ Built, with beginner and advanced formats as editable files in `PARTY_FORMATS_DI
 
 A backend test with at least two users and a shared and a private storage should check, for every list and detail endpoint, that a user sees only their own and shared storages. The same test should check that view-only users can't change anything and that moving between storages needs `edit` on both. Also test the catalog rule (the "created it" case and the hidden-duplicate case) and that a link from one user never shows another user's bottles. Run it on SQLite, and on Postgres and MySQL where available.
 
-### Open details
+### Decided details
 
-- Personal storage naming and whether it appears in storage lists (proposed: yes, marked as personal, hidden from other users).
-- Whether the admin can reassign a user's personal storage contents when removing a user.
+- Personal storages are hidden from other users' storage lists. Only the owner and the admin see them.
+- Deleting a user keeps their personal storage and its bottles. The admin cleans them up afterwards (moves or removes them); nothing is reassigned automatically.
 
 ## Smaller follow-ups noted along the way
 

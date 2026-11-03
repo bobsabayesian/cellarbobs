@@ -13,6 +13,7 @@ import type { Database } from "@schema/database.js";
 import { auth } from "@utils/auth.js";
 import { shortText } from "@utils/migration-helpers.js";
 import { env } from "@utils/env.js";
+import { errorHandler } from "@middleware/error.middleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,6 +66,7 @@ export async function runMigrations(db: Kysely<Database>): Promise<void> {
 // Clean all table data (FK-safe order: children first)
 export async function cleanDatabase(db: Kysely<Database>): Promise<void> {
   const tables = [
+    "storageAccess",
     "shareMark",
     "shareGuest",
     "shareLink",
@@ -99,7 +101,9 @@ export async function cleanDatabase(db: Kysely<Database>): Promise<void> {
 
 // Create test app instance (unauthenticated)
 export function createTestApp() {
-  return new OpenAPIHono();
+  const app = new OpenAPIHono();
+  app.onError(errorHandler);
+  return app;
 }
 
 // Create mock session data
@@ -136,7 +140,7 @@ export function createTestAppWithAuth(
   userId: string = "test-user-1",
   email: string = "test@example.com",
 ) {
-  const app = new OpenAPIHono();
+  const app = createTestApp();
 
   // Mock the auth.api.getSession method to return our mock session
   const mockSession = createMockSession(userId, email);
@@ -150,7 +154,7 @@ export function createTestAppWithNonAdmin(
   userId: string = "test-user-2",
   email: string = "user@example.com",
 ) {
-  const app = new OpenAPIHono();
+  const app = createTestApp();
 
   const mockSession = createMockSession(userId, email, "user");
   vi.spyOn(auth.api, "getSession").mockResolvedValue(mockSession);

@@ -1,4 +1,5 @@
 import { db } from "@utils/database.js";
+import { visibleStorageIds } from "@utils/access.js";
 import { BOTTLE_STATUSES } from "@cellarboss/validators";
 import type { BottleCounts } from "@cellarboss/types";
 
@@ -27,6 +28,8 @@ export async function bottleCountsByVintageIds(
     .select((eb) => ["vintageId", "status", eb.fn.count("id").as("count")])
     .groupBy(["vintageId", "status"]);
   if (vintageIds) query = query.where("vintageId", "in", vintageIds);
+  const visible = await visibleStorageIds();
+  if (visible) query = query.where("storageId", "in", visible);
 
   for (const row of await query.execute()) {
     const counts = result.get(row.vintageId) ?? emptyBottleCounts();
