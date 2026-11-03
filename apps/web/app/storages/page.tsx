@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/page/PageHeader";
 import { AddButton } from "@/components/buttons/AddButton";
 import { useApiQuery } from "@/hooks/use-api-query";
+import { useAccess } from "@/hooks/use-access";
 import { queryGate } from "@/lib/functions/query-gate";
 
 export default function StoragesPage() {
@@ -88,6 +89,8 @@ export default function StoragesPage() {
     queryKey: ["bottles"],
     queryFn: getBottles,
   });
+
+  const access = useAccess();
 
   const result = queryGate([storageQuery, locationQuery, bottleQuery]);
   if (!result.ready) return result.gate;
@@ -201,11 +204,15 @@ export default function StoragesPage() {
       cell: ({ row }) => {
         return (
           <div className="flex gap-1 justify-center mx-5">
-            <EditButton onEdit={() => handleEdit(row.original)} />
-            <DeleteButton
-              itemDescription={row.original.name}
-              onDelete={() => handleDelete(row.original)}
-            />
+            {access.canEdit(row.original.id) && (
+              <>
+                <EditButton onEdit={() => handleEdit(row.original)} />
+                <DeleteButton
+                  itemDescription={row.original.name}
+                  onDelete={() => handleDelete(row.original)}
+                />
+              </>
+            )}
           </div>
         );
       },

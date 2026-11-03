@@ -38,6 +38,7 @@ import { ChangeStatusButton } from "@/components/buttons/ChangeStatusButton";
 import { AddButton } from "@/components/buttons/AddButton";
 import { PageHeader } from "@/components/page/PageHeader";
 import { useApiQuery } from "@/hooks/use-api-query";
+import { useAccess } from "@/hooks/use-access";
 import { useSettingsContext } from "@/contexts/settings-context";
 import { queryGate } from "@/lib/functions/query-gate";
 import {
@@ -106,6 +107,8 @@ export default function BottlesPage() {
     parseAsBoolean.withDefault(false),
   );
 
+  const access = useAccess();
+
   const result = queryGate([
     bottleQuery,
     vintageQuery,
@@ -131,6 +134,9 @@ export default function BottlesPage() {
   const currency = settings.get("currency") as string | undefined;
   const dateFormat = settings.get("date") as string | undefined;
   const fill = storageFill(storages, bottles);
+  // Changes are only offered where the user has edit access.
+  const editableStorages = storages.filter((s) => access.canEdit(s.id));
+  const canEditAny = bottles.some((b) => access.canEdit(b.storageId));
   const hideSetting = hidesConsumed(settings);
   const hide = hideSetting && !includeConsumed && !searchParams.get("status");
   const consumedCount = bottles.filter((b) =>
@@ -186,7 +192,8 @@ export default function BottlesPage() {
     invalidateCounts([bottle]);
   }
 
-  async function handleBulkDelete(rows: Bottle[]): Promise<void> {
+  async function handleBulkDelete(selected: Bottle[]): Promise<void> {
+    const rows = selected.filter((b) => access.canEdit(b.storageId));
     const errors: string[] = [];
     try {
       for (const row of rows) {
@@ -202,9 +209,10 @@ export default function BottlesPage() {
   }
 
   async function handleBulkEdit(
-    rows: Bottle[],
+    selected: Bottle[],
     partial: Record<string, string | number>,
   ): Promise<void> {
+    const rows = selected.filter((b) => access.canEdit(b.storageId));
     const status = BOTTLE_STATUSES.find((s) => s === partial.status);
     const updated: Bottle[] = [];
     try {
@@ -240,7 +248,9 @@ export default function BottlesPage() {
       key: "storageId",
       label: "Storage",
       type: "select",
-      options: sortHierarchicalOptions(buildHierarchicalOptions(treeData)),
+      options: sortHierarchicalOptions(
+        buildHierarchicalOptions(buildTree(editableStorages, "parent")),
+      ),
     },
   ];
 
@@ -472,16 +482,20 @@ export default function BottlesPage() {
           <ViewButton
             onClick={async () => router.push(`/bottles/${row.original.id}`)}
           />
-          <MoveBottleButton
-            storages={storages}
-            fill={fill}
-            currentStorageId={row.original.storageId}
-            onMove={(id) => handleMove(row.original, id)}
-          />
-          <ChangeStatusButton
-            currentStatus={row.original.status}
-            onChangeStatus={(s) => handleChangeStatus(row.original, s)}
-          />
+          {access.canEdit(row.original.storageId) && (
+            <>
+              <MoveBottleButton
+                storages={editableStorages}
+                fill={fill}
+                currentStorageId={row.original.storageId}
+                onMove={(id) => handleMove(row.original, id)}
+              />
+              <ChangeStatusButton
+                currentStatus={row.original.status}
+                onChangeStatus={(s) => handleChangeStatus(row.original, s)}
+              />
+            </>
+          )}
           <IconButton
             icon={NotebookPen}
             tooltip="Add tasting note"
@@ -492,18 +506,24 @@ export default function BottlesPage() {
               );
             }}
           />
-          <EditButton
-            onEdit={async () => router.push(`/bottles/${row.original.id}/edit`)}
-          />
-          <DeleteButton
-            itemDescription={getVintageName(
-              row.original.vintageId,
-              vintageMap,
-              wineMap,
-              winemakerMap,
-            )}
-            onDelete={() => handleDelete(row.original)}
-          />
+          {access.canEdit(row.original.storageId) && (
+            <>
+              <EditButton
+                onEdit={async () =>
+                  router.push(`/bottles/${row.original.id}/edit`)
+                }
+              />
+              <DeleteButton
+                itemDescription={getVintageName(
+                  row.original.vintageId,
+                  vintageMap,
+                  wineMap,
+                  winemakerMap,
+                )}
+                onDelete={() => handleDelete(row.original)}
+              />
+            </>
+          )}
         </div>
       ),
     },
@@ -582,9 +602,9 @@ export default function BottlesPage() {
         filterColumnName="vintage"
         defaultSortColumn="purchaseDate"
         filters={filters}
-        onBulkDelete={handleBulkDelete}
-        bulkEditFields={bulkEditFields}
-        onBulkEdit={handleBulkEdit}
+        onBulkDelete={canEditAny ? handleBulkDelete : undefined}
+        bulkEditFields={canEditAny ? bulkEditFields : undefined}
+        onBulkEdit={canEditAny ? handleBulkEdit : undefined}
         buttons={[
           ...(hideSetting && consumedCount > 0 && !searchParams.get("status")
             ? [

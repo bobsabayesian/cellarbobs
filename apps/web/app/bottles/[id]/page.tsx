@@ -37,6 +37,7 @@ import { TastingNotesSection } from "@/components/tasting-notes/TastingNotesSect
 import { VintageImageGallery } from "@/components/images/VintageImageGallery";
 import { Badge } from "@/components/ui/badge";
 import { useApiQuery } from "@/hooks/use-api-query";
+import { useAccess } from "@/hooks/use-access";
 import { queryGate } from "@/lib/functions/query-gate";
 import {
   formatStatus,
@@ -110,6 +111,8 @@ export default function ViewBottlePage() {
     enabled: !!bottleId,
   });
 
+  const access = useAccess();
+
   const result = queryGate([
     bottleQuery,
     vintagesQuery,
@@ -164,41 +167,43 @@ export default function ViewBottlePage() {
       <PageHeader
         title="Bottle Details"
         actions={
-          <>
-            <ChangeStatusButton
-              currentStatus={bottle.status}
-              onChangeStatus={async (newStatus) => {
-                await updateBottle({ ...bottle, status: newStatus });
-                queryClient.invalidateQueries({
-                  queryKey: ["bottle", bottleId],
-                });
-                if (vintage) invalidateVintageCounts(queryClient, vintage);
-              }}
-            />
-            <MoveBottleButton
-              storages={allStorages}
-              currentStorageId={bottle.storageId}
-              onMove={async (newStorageId) => {
-                await updateBottle({ ...bottle, storageId: newStorageId });
-                queryClient.invalidateQueries({
-                  queryKey: ["bottle", bottleId],
-                });
-              }}
-            />
-            <EditButton
-              onEdit={async () => {
-                router.push(`/bottles/${bottleId}/edit`);
-              }}
-            />
-            <DeleteButton
-              onDelete={async () => {
-                const result = await deleteBottle(bottleId);
-                if (result.ok) router.push("/bottles");
-                return result.ok;
-              }}
-              itemDescription={title}
-            />
-          </>
+          access.canEdit(bottle.storageId) && (
+            <>
+              <ChangeStatusButton
+                currentStatus={bottle.status}
+                onChangeStatus={async (newStatus) => {
+                  await updateBottle({ ...bottle, status: newStatus });
+                  queryClient.invalidateQueries({
+                    queryKey: ["bottle", bottleId],
+                  });
+                  if (vintage) invalidateVintageCounts(queryClient, vintage);
+                }}
+              />
+              <MoveBottleButton
+                storages={allStorages.filter((s) => access.canEdit(s.id))}
+                currentStorageId={bottle.storageId}
+                onMove={async (newStorageId) => {
+                  await updateBottle({ ...bottle, storageId: newStorageId });
+                  queryClient.invalidateQueries({
+                    queryKey: ["bottle", bottleId],
+                  });
+                }}
+              />
+              <EditButton
+                onEdit={async () => {
+                  router.push(`/bottles/${bottleId}/edit`);
+                }}
+              />
+              <DeleteButton
+                onDelete={async () => {
+                  const result = await deleteBottle(bottleId);
+                  if (result.ok) router.push("/bottles");
+                  return result.ok;
+                }}
+                itemDescription={title}
+              />
+            </>
+          )
         }
       />
 

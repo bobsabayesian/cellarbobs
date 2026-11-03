@@ -9,6 +9,7 @@ import { getStorageAncestry, storageFill } from "@cellarboss/common/storages";
 import { formatPrice, formatStatus } from "@cellarboss/common/format";
 import { PENDING_STATUSES } from "@/lib/constants/pending";
 import { useApiQuery } from "@/hooks/use-api-query";
+import { useAccess } from "@/hooks/use-access";
 import { useSettingsContext } from "@/contexts/settings-context";
 import { queryGate } from "@/lib/functions/query-gate";
 import { invalidateVintageCounts } from "@/lib/functions/invalidate-vintage-counts";
@@ -45,6 +46,8 @@ export default function PendingPage() {
     useApiQuery({ queryKey: ["winemakers"], queryFn: getWinemakers }),
     useApiQuery({ queryKey: ["storages"], queryFn: getStorages }),
   ] as const;
+  const access = useAccess();
+
   const result = queryGate([...queries]);
   if (!result.ready) return result.gate;
   const [bottles, vintages, wines, winemakers, storages] = result.data;
@@ -117,7 +120,7 @@ export default function PendingPage() {
         actions={
           <ReceiveBottlesDialog
             count={selected.size}
-            storages={storages}
+            storages={storages.filter((s) => access.canEdit(s.id))}
             fill={storageFill(storages, bottles)}
             onReceive={receive}
           />

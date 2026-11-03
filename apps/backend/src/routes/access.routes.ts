@@ -5,14 +5,20 @@ import * as access from "@controllers/access.controller.js";
 import { requireAuth } from "@middleware/auth.middleware.js";
 import { requireAdmin } from "@middleware/admin.middleware.js";
 import { parseId } from "@utils/id.js";
+import { myAccess } from "@utils/access.js";
 
 const grantSchema = z.object({ level: z.enum(["view", "edit"]).nullable() });
 
 /** Admin-only: who can see which storages. */
 export function registerAccessRoutes(app: OpenAPIHono) {
   const routes = new Hono();
-  routes.use("*", requireAuth, requireAdmin);
+  routes.use("*", requireAuth);
 
+  // Any signed-in user: what they may do, so the UI can hide the rest.
+  routes.get("/me", async (c) => c.json(await myAccess()));
+
+  routes.use("/storages", requireAdmin);
+  routes.use("/storages/*", requireAdmin);
   routes.get("/storages", async (c) => c.json(await access.overview()));
 
   routes.put("/storages/:storageId/users/:userId", async (c) => {

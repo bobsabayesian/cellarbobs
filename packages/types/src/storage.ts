@@ -29,3 +29,9 @@ export interface StorageAccessOverview {
   storages: Pick<Storage, "id" | "name" | "parent" | "locationId">[];
   grants: StorageGrant[];
 }
+
+/** What the signed-in user can do with storages (the admin can do anything). */
+export interface MyAccess {
+  isAdmin: boolean;
+  levels: Record<number, AccessLevel>;
+}

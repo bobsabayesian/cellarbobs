@@ -30,6 +30,7 @@ import { Switch } from "@/components/ui/switch";
 import { usePreferencesContext } from "@/contexts/preferences-context";
 import { useUpsertPreference } from "@/hooks/use-preferences";
 import { useApiQuery } from "@/hooks/use-api-query";
+import { useAccess } from "@/hooks/use-access";
 import { queryGate } from "@/lib/functions/query-gate";
 import { parsePreference } from "@cellarboss/common/preferences";
 import {
@@ -96,6 +97,8 @@ export default function ViewStoragePage() {
       value: JSON.stringify(checked),
     });
   }
+
+  const access = useAccess();
 
   const result = queryGate([
     storageQuery,
@@ -181,21 +184,23 @@ export default function ViewStoragePage() {
       <PageHeader
         title="Storage Details"
         actions={
-          <>
-            <EditButton
-              onEdit={async () => {
-                router.push(`/storages/${storageId}/edit`);
-              }}
-            />
-            <DeleteButton
-              onDelete={async () => {
-                const result = await deleteStorage(storageId);
-                if (result.ok) router.push("/storages");
-                return result.ok;
-              }}
-              itemDescription={storage.name}
-            />
-          </>
+          access.canEdit(storageId) && (
+            <>
+              <EditButton
+                onEdit={async () => {
+                  router.push(`/storages/${storageId}/edit`);
+                }}
+              />
+              <DeleteButton
+                onDelete={async () => {
+                  const result = await deleteStorage(storageId);
+                  if (result.ok) router.push("/storages");
+                  return result.ok;
+                }}
+                itemDescription={storage.name}
+              />
+            </>
+          )
         }
       />
 

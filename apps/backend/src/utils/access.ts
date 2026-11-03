@@ -142,6 +142,16 @@ export async function visibleStorageIdsFor(
   return levels.size ? [...levels.keys()] : NONE;
 }
 
+/** What the signed-in user can do, for the UI to hide actions they can't use. */
+export async function myAccess(): Promise<{
+  isAdmin: boolean;
+  levels: Record<number, AccessLevel>;
+}> {
+  const levels = await viewerLevels();
+  if (!levels) return { isAdmin: true, levels: {} };
+  return { isAdmin: false, levels: Object.fromEntries(levels) };
+}
+
 export async function storageLevel(
   storageId: number | null,
 ): Promise<AccessLevel | null> {

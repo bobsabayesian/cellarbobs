@@ -311,6 +311,22 @@ describe("Family access", () => {
     expect(await ids("/location")).toEqual([loc.id]);
   });
 
+  it("tells each user what they can do", async () => {
+    const fridge = await createStorage("sister", "Sister fridge");
+    await grant(fridge, "brother", "view");
+    actAs("brother", "user");
+    expect(await (await get("/access/me")).json()).toEqual({
+      isAdmin: false,
+      levels: { [fridge]: "view" },
+    });
+    actAs("sister", "user");
+    expect((await (await get("/access/me")).json()).levels[fridge]).toBe(
+      "edit",
+    );
+    actAs("admin", "admin");
+    expect((await (await get("/access/me")).json()).isAdmin).toBe(true);
+  });
+
   it("only the admin can manage access", async () => {
     const fridge = await createStorage("sister", "Fridge");
     actAs("sister", "user");

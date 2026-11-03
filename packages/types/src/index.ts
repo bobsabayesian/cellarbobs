@@ -16,6 +16,7 @@ export type {
   AccessLevel,
   StorageGrant,
   StorageAccessOverview,
+  MyAccess,
 } from "./storage";
 export type {
   Vintage,

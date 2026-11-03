@@ -9,6 +9,7 @@ One database, shared by the family. The admin decides which users see which stor
   - Access to a storage covers everything inside it, so sharing a rack shares its shelves. If someone has more than one grant on the way down, the higher one wins.
   - **View** is read-only. **Edit** lets them add, change, move, change the status of and delete bottles there, and edit the storage itself.
   - A user granted only a shelf sees the shelf, not the rack around it.
+  - The screens hide the buttons to move, change the status of, edit or delete bottles, and to edit or delete a storage, wherever the user only has View. The move and receive pickers only offer storages they can edit, and bulk actions skip bottles they can't change. The server enforces it either way.
 - **A bottle follows its storage.** If you can see the shelf, you can see its bottles, with the same level. Bottle counts on wine and vintage pages only count bottles you can see.
 - **New storages are private.** Whoever adds a storage gets Edit on it, and nobody else sees it until the admin shares it.
 - **Moving needs Edit on both ends.** A bottle can only be moved into a storage you can edit.
@@ -42,7 +43,7 @@ For now a party or shared link belongs to whoever made it, and the admin sees al
 
 ## Not covered yet
 
-- **The edit buttons don't change for View users.** The server refuses with "You have view-only access to this storage".
+- **Catalog records** (wines, winemakers and so on) can still be edited by anyone who can see them, including View-only users. Only bottles and storages follow the View/Edit level.
 - **MCP** has no login, so it sees everything. Keep it on localhost.
 
 ## Upgrading
