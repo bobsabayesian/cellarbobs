@@ -6,3 +6,6 @@ dist
 .env*
 Dockerfile
 docker-compose*
+# never send the live deploy data or personal exports into a build
+deploy/
+ct-export/

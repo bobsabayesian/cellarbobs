@@ -1,0 +1,539 @@
+{
+  "name": "Advanced",
+  "description": "A systematic tasting in four steps: look, nose, palate, conclusion.",
+  "rating": {
+    "kind": "score"
+  },
+  "steps": [
+    {
+      "id": "look",
+      "title": "Look",
+      "hint": "Tilt the glass against something white.",
+      "blocks": [
+        {
+          "id": "appearance",
+          "title": "Appearance",
+          "fields": [
+            {
+              "key": "clarity",
+              "label": "Clarity",
+              "kind": "scale",
+              "options": [
+                "clear",
+                "hazy"
+              ]
+            },
+            {
+              "key": "intensity",
+              "label": "Intensity",
+              "kind": "scale",
+              "options": [
+                "pale",
+                "medium",
+                "deep"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "colour",
+          "title": "Colour",
+          "subtitle": "Pick what you see, then the shade",
+          "fields": [
+            {
+              "key": "colour",
+              "label": "Colour",
+              "kind": "colour",
+              "note": "youngest to oldest",
+              "families": {
+                "White": [
+                  {
+                    "label": "lemon-green",
+                    "color": "#E6EBA8"
+                  },
+                  {
+                    "label": "lemon",
+                    "color": "#F2E27E"
+                  },
+                  {
+                    "label": "gold",
+                    "color": "#E2B348"
+                  },
+                  {
+                    "label": "amber",
+                    "color": "#C47F2A"
+                  },
+                  {
+                    "label": "brown",
+                    "color": "#8A5A2B"
+                  }
+                ],
+                "Rosé": [
+                  {
+                    "label": "pink",
+                    "color": "#F2A3B3"
+                  },
+                  {
+                    "label": "salmon",
+                    "color": "#F09C7A"
+                  },
+                  {
+                    "label": "orange",
+                    "color": "#E2854A"
+                  }
+                ],
+                "Red": [
+                  {
+                    "label": "purple",
+                    "color": "#5A1D4C"
+                  },
+                  {
+                    "label": "ruby",
+                    "color": "#8C1631"
+                  },
+                  {
+                    "label": "garnet",
+                    "color": "#7A2B27"
+                  },
+                  {
+                    "label": "tawny",
+                    "color": "#9A5A35"
+                  },
+                  {
+                    "label": "brown",
+                    "color": "#5C3A22"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "other",
+          "title": "Other observations",
+          "subtitle": "Bubbles, legs, deposit",
+          "collapsible": true,
+          "fields": [
+            {
+              "key": "bubbles",
+              "label": "Bubbles",
+              "kind": "multi",
+              "options": [
+                "petillance",
+                "creamy",
+                "aggressive",
+                "fine"
+              ]
+            },
+            {
+              "key": "viscosity",
+              "label": "Viscosity",
+              "kind": "multi",
+              "options": [
+                "tears",
+                "legs",
+                "thick",
+                "watery"
+              ]
+            },
+            {
+              "key": "deposit",
+              "label": "Deposit",
+              "kind": "multi",
+              "options": [
+                "sediment",
+                "tartrates"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nose",
+      "title": "Nose",
+      "hint": "Swirl, then sniff. Tap what you get, and open a section for more.",
+      "blocks": [
+        {
+          "id": "nose_intensity",
+          "title": "Intensity",
+          "fields": [
+            {
+              "key": "nose_intensity",
+              "label": "How strong is the smell?",
+              "kind": "scale",
+              "options": [
+                "light",
+                "medium-",
+                "medium",
+                "medium+",
+                "pronounced"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "primary",
+          "title": "Primary",
+          "subtitle": "From the grape and fermentation",
+          "collapsible": true,
+          "open": true,
+          "fields": [
+            {
+              "key": "p_fruit",
+              "label": "Fruit",
+              "kind": "multi",
+              "options": [
+                "cherry",
+                "red berry",
+                "black fruit",
+                "plum",
+                "citrus",
+                "green apple",
+                "stone fruit",
+                "tropical",
+                "dried fruit"
+              ],
+              "tag": true
+            },
+            {
+              "key": "p_floral",
+              "label": "Floral",
+              "kind": "multi",
+              "options": [
+                "rose",
+                "violet",
+                "white flowers"
+              ],
+              "tag": true
+            },
+            {
+              "key": "p_earth",
+              "label": "Earth",
+              "kind": "multi",
+              "options": [
+                "earth",
+                "mineral",
+                "tar"
+              ],
+              "tag": true
+            },
+            {
+              "key": "p_vegetal",
+              "label": "Vegetal",
+              "kind": "multi",
+              "options": [
+                "grass",
+                "bell pepper",
+                "mint",
+                "eucalyptus",
+                "tomato leaf",
+                "herbal"
+              ],
+              "tag": true
+            },
+            {
+              "key": "p_spice",
+              "label": "Spice",
+              "kind": "multi",
+              "options": [
+                "pepper",
+                "baking spice",
+                "licorice"
+              ],
+              "tag": true
+            }
+          ]
+        },
+        {
+          "id": "secondary",
+          "title": "Secondary",
+          "subtitle": "From winemaking",
+          "collapsible": true,
+          "fields": [
+            {
+              "key": "s_oak",
+              "label": "Oak",
+              "kind": "multi",
+              "options": [
+                "vanilla",
+                "toast",
+                "cedar",
+                "smoke",
+                "dill",
+                "clove"
+              ],
+              "tag": true
+            },
+            {
+              "key": "s_malo",
+              "label": "Malolactic",
+              "kind": "multi",
+              "options": [
+                "butter",
+                "cream",
+                "cheese"
+              ],
+              "tag": true
+            },
+            {
+              "key": "s_auto",
+              "label": "Autolytic",
+              "kind": "multi",
+              "options": [
+                "brioche",
+                "biscuit",
+                "bread",
+                "pastry",
+                "yeast"
+              ],
+              "tag": true
+            }
+          ]
+        },
+        {
+          "id": "tertiary",
+          "title": "Tertiary",
+          "subtitle": "From maturation and age",
+          "collapsible": true,
+          "fields": [
+            {
+              "key": "t_red",
+              "label": "Red ageing",
+              "kind": "multi",
+              "options": [
+                "leather",
+                "forest floor",
+                "mushroom",
+                "meaty",
+                "tobacco",
+                "wet leaves",
+                "dried fruit"
+              ],
+              "tag": true
+            },
+            {
+              "key": "t_white",
+              "label": "White ageing",
+              "kind": "multi",
+              "options": [
+                "petrol",
+                "honey",
+                "marzipan",
+                "almond",
+                "marmalade",
+                "dried apricot"
+              ],
+              "tag": true
+            },
+            {
+              "key": "t_ox",
+              "label": "Oxidation",
+              "kind": "multi",
+              "options": [
+                "caramel",
+                "toffee",
+                "chocolate",
+                "coffee",
+                "walnut"
+              ],
+              "tag": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "palate",
+      "title": "Palate",
+      "hint": "Take a sip and hold it. Tannin is the drying grip, mostly in reds.",
+      "blocks": [
+        {
+          "id": "structure",
+          "title": "Structure",
+          "fields": [
+            {
+              "key": "sweetness",
+              "label": "Sweetness",
+              "kind": "scale",
+              "options": [
+                "dry",
+                "off-dry",
+                "medium-dry",
+                "medium-sweet",
+                "sweet"
+              ],
+              "cols": 3
+            },
+            {
+              "key": "acidity",
+              "label": "Acidity",
+              "kind": "scale",
+              "options": [
+                "low",
+                "medium-",
+                "medium",
+                "medium+",
+                "high"
+              ],
+              "structure": "acidity"
+            },
+            {
+              "key": "acidity_feel",
+              "label": "Acidity feels",
+              "kind": "multi",
+              "options": [
+                "crisp",
+                "tart",
+                "steely",
+                "flabby",
+                "racy",
+                "mouth-watering"
+              ]
+            },
+            {
+              "key": "tannin",
+              "label": "Tannin",
+              "kind": "scale",
+              "options": [
+                "low",
+                "medium-",
+                "medium",
+                "medium+",
+                "high"
+              ],
+              "note": "skip for most whites",
+              "structure": "tannin"
+            },
+            {
+              "key": "tannin_feel",
+              "label": "Tannin feels",
+              "kind": "multi",
+              "options": [
+                "silky",
+                "velvety",
+                "fine-grained",
+                "grippy",
+                "coarse",
+                "chalky",
+                "astringent",
+                "unripe"
+              ]
+            },
+            {
+              "key": "alcohol",
+              "label": "Alcohol",
+              "kind": "scale",
+              "options": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            {
+              "key": "alcohol_feel",
+              "label": "Alcohol feels",
+              "kind": "scale",
+              "options": [
+                "integrated",
+                "warming",
+                "hot"
+              ]
+            },
+            {
+              "key": "body",
+              "label": "Body",
+              "kind": "scale",
+              "options": [
+                "light",
+                "medium-",
+                "medium",
+                "medium+",
+                "full"
+              ],
+              "structure": "body"
+            }
+          ]
+        },
+        {
+          "id": "flavour",
+          "title": "Flavour and finish",
+          "fields": [
+            {
+              "key": "flavour_intensity",
+              "label": "Flavour intensity",
+              "kind": "scale",
+              "options": [
+                "light",
+                "medium-",
+                "medium",
+                "medium+",
+                "pronounced"
+              ]
+            },
+            {
+              "key": "finish",
+              "label": "Finish length",
+              "kind": "scale",
+              "options": [
+                "short",
+                "medium-",
+                "medium",
+                "medium+",
+                "long"
+              ]
+            },
+            {
+              "key": "complexity",
+              "label": "Complexity",
+              "kind": "scale",
+              "options": [
+                "simple",
+                "some complexity",
+                "very complex"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "conclusion",
+      "title": "Conclusion",
+      "hint": "How is it drinking, and how good is it?",
+      "blocks": [
+        {
+          "id": "verdict",
+          "title": "Verdict",
+          "fields": [
+            {
+              "key": "development",
+              "label": "How is it drinking?",
+              "kind": "scale",
+              "options": [
+                "youthful",
+                "developing",
+                "fully developed",
+                "tired/past its best"
+              ],
+              "cols": 2
+            },
+            {
+              "key": "quality",
+              "label": "Quality",
+              "kind": "scale",
+              "options": [
+                "poor",
+                "acceptable",
+                "good",
+                "very good",
+                "outstanding"
+              ],
+              "cols": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

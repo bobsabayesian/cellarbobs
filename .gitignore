@@ -53,3 +53,13 @@ Thumbs.db
 
 # generated docs
 apps/backend/docs/
+
+# production deploy data
+deploy/data/
+deploy/uploads/
+
+# CellarTracker export files (personal data)
+ct-export/
+
+# written by `next dev`
+apps/web/AGENTS.md

@@ -1,0 +1,66 @@
+# Production CellarBoss stack, served publicly at https://wine.bobsabayesian.io
+# through a host-level cloudflared tunnel (see cloudflared/config.yml.example).
+#
+#   cp .env.example .env   # then fill in the secret
+#   docker compose up -d
+#
+# Only the web container is published, and only on 127.0.0.1, so the tunnel is
+# the sole way in from outside. The backend (including its unauthenticated /mcp
+# endpoint) stays on the internal Docker network.
+
+services:
+  backend:
+    # Built from this fork (it adds bottle consumed fields upstream lacks).
+    # Rebuild after pulling changes: docker compose up -d --build
+    build:
+      context: ..
+      dockerfile: apps/backend/Dockerfile
+    image: cellarbobs-backend:local
+    environment:
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+      # Keep this as the internal http URL. An https:// base URL makes Better
+      # Auth use the __Secure- cookie prefix, which apps/web/proxy.ts doesn't
+      # recognise, causing a login redirect loop.
+      BETTER_AUTH_URL: http://backend:5000
+      DATABASE_TYPE: sqlite
+      DATABASE_URL: /config/cellarboss.sqlite
+      NODE_ENV: production
+      # Every origin the web UI is opened from. Must match exactly.
+      CORS: ${PUBLIC_ORIGIN:-https://wine.bobsabayesian.io}
+      UPLOAD_DIR: /uploads
+      # Read-only MCP server at /mcp. It has NO authentication, so the port
+      # below is bound to 127.0.0.1 only; reach it from other machines over
+      # an SSH tunnel, never through the Cloudflare tunnel.
+      MCP_ENABLED: "true"
+      # Quick-tap tags guests pick at tasting parties. Edit
+      # deploy/data/tasting-tags.json; changes apply without a restart.
+      PARTY_TAGS_FILE: /config/tasting-tags.json
+      # Tasting formats (beginner.json, advanced.json). Edit the files in
+      # deploy/data/tasting-formats; changes apply without a restart.
+      PARTY_FORMATS_DIR: /config/tasting-formats
+    ports:
+      # Host 5050 (5000 is left free for the dev backend).
+      - "127.0.0.1:${MCP_PORT:-5050}:5000"
+    volumes:
+      - ./data:/config
+      - ./uploads:/uploads
+    restart: unless-stopped
+    networks: [internal]
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    image: cellarbobs-web:local
+    environment:
+      CELLARBOSS_SERVER: http://backend:5000
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+      BETTER_AUTH_URL: http://backend:5000
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    depends_on: [backend]
+    restart: unless-stopped
+    networks: [internal]
+
+networks:
+  internal:

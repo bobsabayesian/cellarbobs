@@ -1,0 +1,46 @@
+{
+  "fruit": [
+    "cherry",
+    "red berry",
+    "black fruit",
+    "plum",
+    "citrus",
+    "green apple",
+    "stone fruit",
+    "tropical",
+    "dried fruit"
+  ],
+  "floral": [
+    "rose",
+    "violet",
+    "white flowers"
+  ],
+  "earth": [
+    "earth",
+    "mushroom",
+    "forest floor",
+    "mineral",
+    "tar",
+    "leather"
+  ],
+  "oak": [
+    "vanilla",
+    "toast",
+    "smoke",
+    "cedar",
+    "coconut"
+  ],
+  "spice": [
+    "pepper",
+    "baking spice",
+    "herbal",
+    "licorice",
+    "tobacco"
+  ],
+  "other": [
+    "honey",
+    "nutty",
+    "brioche",
+    "funky"
+  ]
+}

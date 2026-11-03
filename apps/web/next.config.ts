@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
   // are included in the standalone bundle.
   outputFileTracingRoot: path.resolve(__dirname, "../../"),
   reactCompiler: true,
+  // Hosts other than localhost that may load the dev server (HMR, dev assets),
+  // e.g. when tunnelling it: ALLOWED_DEV_ORIGINS=wine-dev.bobsabayesian.io
+  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   transpilePackages: ["@cellarboss/types", "@cellarboss/validators"],
   async headers() {
     return [

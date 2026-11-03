@@ -1,0 +1,211 @@
+{
+  "name": "Beginner",
+  "description": "One screen: colour, aromas, sweetness, body, and how much you liked it.",
+  "rating": {
+    "kind": "reaction",
+    "options": [
+      {
+        "label": "loved it",
+        "score": 95
+      },
+      {
+        "label": "liked it",
+        "score": 85
+      },
+      {
+        "label": "not for me",
+        "score": 70
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "taste",
+      "title": "Taste",
+      "hint": "Look, swirl, sniff, sip. Tap whatever fits; nothing is wrong.",
+      "blocks": [
+        {
+          "id": "colour",
+          "title": "Colour",
+          "subtitle": "Pick what you see, then the shade",
+          "fields": [
+            {
+              "key": "colour",
+              "label": "Colour",
+              "kind": "colour",
+              "families": {
+                "White": [
+                  {
+                    "label": "pale yellow",
+                    "color": "#F3E59A"
+                  },
+                  {
+                    "label": "gold",
+                    "color": "#E2B348"
+                  }
+                ],
+                "Red": [
+                  {
+                    "label": "light red",
+                    "color": "#C2414B"
+                  },
+                  {
+                    "label": "dark red",
+                    "color": "#6E1A2A"
+                  },
+                  {
+                    "label": "purple",
+                    "color": "#5A1D4C"
+                  }
+                ],
+                "Rosé": [
+                  {
+                    "label": "pink",
+                    "color": "#F2A3B3"
+                  },
+                  {
+                    "label": "salmon",
+                    "color": "#F09C7A"
+                  }
+                ],
+                "Orange": [
+                  {
+                    "label": "orange",
+                    "color": "#E2854A"
+                  },
+                  {
+                    "label": "amber",
+                    "color": "#C47F2A"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "aromas",
+          "title": "What do you smell?",
+          "fields": [
+            {
+              "key": "aroma_fruit",
+              "label": "Fruit",
+              "kind": "multi",
+              "options": [
+                "cherry",
+                "red berry",
+                "black fruit",
+                "plum",
+                "citrus",
+                "green apple",
+                "stone fruit",
+                "tropical",
+                "dried fruit"
+              ],
+              "tag": true
+            },
+            {
+              "key": "aroma_floral",
+              "label": "Floral",
+              "kind": "multi",
+              "options": [
+                "rose",
+                "violet",
+                "white flowers"
+              ],
+              "tag": true
+            },
+            {
+              "key": "aroma_earth",
+              "label": "Earth",
+              "kind": "multi",
+              "options": [
+                "earth",
+                "mushroom",
+                "forest floor",
+                "mineral",
+                "tar",
+                "leather"
+              ],
+              "tag": true
+            },
+            {
+              "key": "aroma_oak",
+              "label": "Oak",
+              "kind": "multi",
+              "options": [
+                "vanilla",
+                "toast",
+                "smoke",
+                "cedar",
+                "coconut"
+              ],
+              "tag": true
+            },
+            {
+              "key": "aroma_spice",
+              "label": "Spice",
+              "kind": "multi",
+              "options": [
+                "pepper",
+                "baking spice",
+                "herbal",
+                "licorice",
+                "tobacco"
+              ],
+              "tag": true
+            },
+            {
+              "key": "aroma_other",
+              "label": "Other",
+              "kind": "multi",
+              "options": [
+                "honey",
+                "nutty",
+                "brioche",
+                "funky"
+              ],
+              "tag": true
+            }
+          ]
+        },
+        {
+          "id": "palate",
+          "title": "In your mouth",
+          "fields": [
+            {
+              "key": "sweetness",
+              "label": "Sweetness",
+              "kind": "scale",
+              "options": [
+                "dry",
+                "sweet"
+              ]
+            },
+            {
+              "key": "body",
+              "label": "Body",
+              "kind": "scale",
+              "options": [
+                "light",
+                "medium",
+                "heavy"
+              ],
+              "structure": "body"
+            },
+            {
+              "key": "tannin",
+              "label": "Tannin",
+              "kind": "scale",
+              "options": [
+                "soft",
+                "grippy"
+              ],
+              "note": "reds only",
+              "structure": "tannin"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
