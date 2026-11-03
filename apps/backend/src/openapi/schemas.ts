@@ -52,6 +52,10 @@ export const regionResponseSchema = createRegionSchema.extend({
 
 export const storageResponseSchema = createStorageSchema.extend({
   id: z.number().describe("Unique identifier"),
+  capacity: z
+    .number()
+    .nullable()
+    .describe("Bottles it holds (one per slot), or null if not set"),
 });
 
 export const wineResponseSchema = createWineSchema.extend({

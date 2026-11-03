@@ -1,4 +1,4 @@
-import type { Storage } from "@cellarboss/types";
+import type { CreateStorage, Storage } from "@cellarboss/types";
 import type { ApiResult, RequestFn } from "../types";
 
 export function storagesResource(request: RequestFn) {
@@ -9,20 +9,32 @@ export function storagesResource(request: RequestFn) {
     getById: (id: number): Promise<ApiResult<Storage>> =>
       request<Storage>("storage/" + id, "GET"),
 
-    create: (storage: Storage): Promise<ApiResult<Storage>> => {
+    create: (
+      storage: CreateStorage & { id?: number },
+    ): Promise<ApiResult<Storage>> => {
       const body = {
         ...storage,
         locationId: storage.locationId ? Number(storage.locationId) : null,
         parent: storage.parent ? Number(storage.parent) : null,
+        // Only sent when the caller has it, so older callers can't clear it.
+        ...(storage.capacity !== undefined && {
+          capacity: storage.capacity ? Number(storage.capacity) : null,
+        }),
       };
       return request<Storage>("storage", "POST", JSON.stringify(body));
     },
 
-    update: (storage: Storage): Promise<ApiResult<Storage>> => {
+    update: (
+      storage: CreateStorage & { id: number },
+    ): Promise<ApiResult<Storage>> => {
       const body = {
         ...storage,
         locationId: storage.locationId ? Number(storage.locationId) : null,
         parent: storage.parent ? Number(storage.parent) : null,
+        // Only sent when the caller has it, so older callers can't clear it.
+        ...(storage.capacity !== undefined && {
+          capacity: storage.capacity ? Number(storage.capacity) : null,
+        }),
       };
       return request<Storage>(
         "storage/" + storage.id,

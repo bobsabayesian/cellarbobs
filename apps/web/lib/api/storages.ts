@@ -1,6 +1,6 @@
 "use server";
 
-import type { Storage } from "@cellarboss/types";
+import type { CreateStorage, Storage } from "@cellarboss/types";
 import type { ApiResult } from "@cellarboss/common";
 import { api } from "./client";
 
@@ -17,7 +17,7 @@ export async function getStorageById(id: number): Promise<ApiResult<Storage>> {
 }
 
 export async function updateStorage(
-  storage: Storage,
+  storage: CreateStorage & { id: number },
 ): Promise<ApiResult<Storage>> {
   return api.storages.update(storage);
 }

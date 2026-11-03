@@ -35,9 +35,9 @@ export const locations: Location[] = [
 ];
 
 export const storages: Storage[] = [
-  { id: 1, name: "Rack A", locationId: 1, parent: null },
-  { id: 2, name: "Rack B", locationId: 1, parent: null },
-  { id: 3, name: "Shelf 1", locationId: 1, parent: 1 },
+  { id: 1, name: "Rack A", locationId: 1, parent: null, capacity: null },
+  { id: 2, name: "Rack B", locationId: 1, parent: null, capacity: null },
+  { id: 3, name: "Shelf 1", locationId: 1, parent: 1, capacity: null },
 ];
 
 export const winemakers: WineMaker[] = [

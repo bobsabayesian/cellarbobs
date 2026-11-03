@@ -36,7 +36,10 @@ import {
   buildDescendantsMap,
   getStorageAncestry,
   INCLUDE_SUB_STORAGES_PREFERENCE,
+  storageFill,
+  describeFree,
 } from "@cellarboss/common/storages";
+import { StorageFillBar } from "@/components/storage/StorageFillBar";
 import type { WineType } from "@cellarboss/validators/constants";
 
 export default function ViewStoragePage() {
@@ -135,6 +138,8 @@ export default function ViewStoragePage() {
   const showSubStorageBottles = includeSubStorages && hasSubStorages;
   const descendantIds =
     buildDescendantsMap(allStorages).get(storageId) ?? new Set([storageId]);
+
+  const fill = storageFill(allStorages, allBottles).get(storageId);
 
   const directBottles = allBottles.filter(
     (b) => b.storageId === storageId && b.status === "stored",
@@ -237,6 +242,16 @@ export default function ViewStoragePage() {
             {allDescendantBottles.length !== directBottles.length &&
               ` · ${allDescendantBottles.length} including sub-storages`}
           </DetailRow>
+          {fill?.capacity != null && (
+            <div className="space-y-1">
+              <StorageFillBar fill={fill} />
+              <p className="text-sm text-muted-foreground">
+                {describeFree(fill)}
+                {storage.capacity === null &&
+                  " · capacity from its sub-storages"}
+              </p>
+            </div>
+          )}
         </DetailCard>
 
         <RelatedResourceSection

@@ -97,6 +97,53 @@ describe("Storage API", () => {
         const data = await res.json();
         expect(data).toHaveProperty("id");
         expect(data.name).toBe("Rack A");
+        expect(data.capacity).toBeNull();
+      });
+
+      it("stores, updates and validates capacity", async () => {
+        const post = (body: object) =>
+          app.request("/storage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+        const res = await post({
+          name: "Bin 12",
+          locationId: testLocationId,
+          parent: null,
+          capacity: 24,
+        });
+        expect(res.status).toBe(201);
+        const bin = await res.json();
+        expect(bin.capacity).toBe(24);
+
+        const renamed = await (
+          await app.request(`/storage/${bin.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: "Bin 12a" }),
+          })
+        ).json();
+        expect(renamed.capacity).toBe(24); // left alone when not sent
+
+        const cleared = await (
+          await app.request(`/storage/${bin.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ capacity: null }),
+          })
+        ).json();
+        expect(cleared.capacity).toBeNull();
+
+        for (const capacity of [0, -3, 2.5]) {
+          const bad = await post({
+            name: "Bad",
+            locationId: testLocationId,
+            parent: null,
+            capacity,
+          });
+          expect(bad.status).toBe(400);
+        }
       });
     });
 

@@ -12,15 +12,20 @@ import { MoveRight, Loader2 } from "lucide-react";
 import { IconButton } from "./IconButton";
 import HierarchicalSingleSelector from "@/components/selector/HierarchicalSingleSelector";
 import type { Storage } from "@cellarboss/types";
+import type { StorageFill } from "@cellarboss/common/storages";
+import { withFreeSpace } from "@/lib/functions/storage-labels";
 
 type MoveBottleButtonProps = {
   storages: Storage[];
+  /** Fill levels, to show free space in the picker. */
+  fill?: Map<number, StorageFill>;
   currentStorageId: number | null;
   onMove: (newStorageId: number | null) => Promise<void>;
 };
 
 export function MoveBottleButton({
   storages,
+  fill,
   currentStorageId,
   onMove,
 }: MoveBottleButtonProps) {
@@ -71,7 +76,7 @@ export function MoveBottleButton({
         </DialogHeader>
         <div className="py-2">
           <HierarchicalSingleSelector
-            options={storages}
+            options={withFreeSpace(storages, fill)}
             isInvalid={false}
             editable={true}
             field={mockField}

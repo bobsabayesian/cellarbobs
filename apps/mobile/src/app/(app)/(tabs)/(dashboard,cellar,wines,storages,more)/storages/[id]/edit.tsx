@@ -34,6 +34,7 @@ export default function EditStorageScreen() {
       name: data.name,
       locationId: data.locationId ? Number(data.locationId) : null,
       parent: data.parent ? Number(data.parent) : null,
+      capacity: data.capacity ? Number(data.capacity) : null,
     });
 
     if (updateResult.ok) {

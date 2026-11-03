@@ -20,6 +20,7 @@ export default function NewStorageScreen() {
     id: 0,
     name: "",
     locationId: locationIdParam ? Number(locationIdParam) : null,
+    capacity: null,
     parent: null,
   };
 
@@ -31,6 +32,7 @@ export default function NewStorageScreen() {
       name: data.name,
       locationId: data.locationId ? Number(data.locationId) : null,
       parent: data.parent ? Number(data.parent) : null,
+      capacity: data.capacity ? Number(data.capacity) : null,
     });
 
     if (result.ok) {

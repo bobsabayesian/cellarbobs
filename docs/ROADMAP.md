@@ -2,29 +2,13 @@
 
 Planned work for this fork, roughly in priority order. Each item notes what it touches, so it can be picked up cold.
 
-## Consumed bottles out of everyday views
+## Drinking history view
 
-**Problem:** since the CellarTracker import, about 700 of the 1,253 bottles are drunk, gifted or sold. They crowd lists that are mostly about what's in the cellar now. Storage pages already count only `stored` bottles (`apps/web/app/storages/[id]/page.tsx`). Other views don't filter.
+Consumed bottles are now hidden from everyday views by the **Hide consumed bottles** setting (done). Still to plan: a dedicated view of drunk, sold and gifted bottles, newest first, with the consumed date and note (e.g. "w/Kristen", "Blind tasting: …").
 
-**Plan:**
+## Done: storage capacity
 
-- **Bottles list** (`apps/web/app/bottles/page.tsx`): default the existing Status filter to the bottles you still have (`stored`, `in-tasting`, `ordered`, `in-primeur`), with a one-click "Include consumed". The filter already lives in the URL (`urlParamName: "status"`), so it's only a default value plus a toggle, and links can still ask for everything.
-- **Wine and vintage pages** (`apps/web/app/wines/[id]`, `apps/web/app/vintages/[id]`): show bottles you have first (vintages already sort `stored` first). Collapse consumed ones into "N past bottles", expandable, showing their consumed date and note.
-- **Global setting (decided):** "hide consumed bottles" is an app-wide default in **Application Settings**, stored with the other settings in the `setting` table, not a per-user preference. Every view follows it. The per-view "Include consumed" toggle overrides it only for that visit.
-- **Drinking history (decided):** consumed bottles get their own dedicated view, to be planned separately. At minimum it shows consumed bottles newest first, with the consumed date and note (e.g. "w/Kristen", "Blind tasting: …").
-- **Dashboard and mobile:** check which counts and lists include consumed bottles, and make each choice deliberate. The mobile app (`apps/mobile`) has its own bottle lists.
-
-## Storage capacity, to see where to slot bottles
-
-**Problem:** when receiving pending bottles, or bottles coming back from a cancelled party, there's no way to see which bins have room.
-
-**Plan:**
-
-- **Data:** add a nullable `capacity` (integer, in bottles) to `storage`. Migration plus `packages/types/src/storage.ts`, the validators, and the storage form fields in web and mobile.
-- **Fill level:** show "18 / 24" and a small fill bar on storage pages and in the storage hierarchy. A parent without its own capacity shows the sum of its children.
-- **Free slots:** a "Free space" view listing bins with room, most free first. Picking a bin in the **Receive** dialog (`components/bottles/ReceiveBottlesDialog.tsx`), **Move bottle**, and the bottle form shows each bin's free space. Bins without enough room for the selection are flagged, not blocked.
-- **Suggestion:** when receiving N bottles, suggest bins with room for all of them, nearest to where the same wine already sits.
-- **Slots (decided):** one bottle is one slot, whatever its size.
+Storages have an optional capacity (one bottle per slot). Lists show "18 / 24" fill bars, the storages page lists **Room to spare**, and the Receive and Move pickers show free space. Possible follow-up: suggest bins with room for a whole delivery, near where the same wine already sits.
 
 ## Done: tasting formats for parties
 

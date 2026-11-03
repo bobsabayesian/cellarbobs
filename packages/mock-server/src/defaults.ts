@@ -52,8 +52,8 @@ export const defaultState: MockState = {
   ],
   locations: [{ id: 1, name: "Home Cellar" }],
   storages: [
-    { id: 1, name: "Rack A", parent: null, locationId: 1 },
-    { id: 2, name: "Shelf 1", parent: 1, locationId: 1 },
+    { id: 1, name: "Rack A", parent: null, locationId: 1, capacity: null },
+    { id: 2, name: "Shelf 1", parent: 1, locationId: 1, capacity: null },
   ],
   bottles: [
     {

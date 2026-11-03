@@ -8,12 +8,13 @@ Storages represent physical storage units within a [location](/resources/locatio
 
 ### Columns
 
-| Column   | Description                                                                           |
-| -------- | ------------------------------------------------------------------------------------- |
-| Name     | The storage unit name                                                                 |
-| Location | The physical location this storage belongs to                                         |
-| Parent   | The parent storage (if nested) — displayed as a breadcrumb hierarchy                  |
-| Actions  | Shortcut buttons for common actions. Hover over the icon to see what each button does |
+| Column   | Description                                                                                                                  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Name     | The storage unit name                                                                                                        |
+| Location | The physical location this storage belongs to                                                                                |
+| Bottles  | Bottles stored there (including inside it). With a capacity: "18 / 24" and a fill bar, amber when nearly full, red when over |
+| Parent   | The parent storage (if nested) — displayed as a breadcrumb hierarchy                                                         |
+| Actions  | Shortcut buttons for common actions. Hover over the icon to see what each button does                                        |
 
 For more on how the hierarchy display works, see [Storage Hierarchy](/features/storage-hierarchy).
 
@@ -29,11 +30,16 @@ Click **Create new Storage** to add a new storage unit.
 
 ### Fields
 
-| Field    | Required | Description                                   |
-| -------- | -------- | --------------------------------------------- |
-| Name     | Yes      | The storage unit name                         |
-| Location | Yes      | The physical location this storage belongs to |
-| Parent   | No       | An optional parent storage for nesting        |
+| Field    | Required | Description                                                                                                                                                                                       |
+| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name     | Yes      | The storage unit name                                                                                                                                                                             |
+| Location | Yes      | The physical location this storage belongs to                                                                                                                                                     |
+| Parent   | No       | An optional parent storage for nesting                                                                                                                                                            |
+| Capacity | No       | How many bottles it holds. One bottle is one slot, whatever its size. A storage without one, such as a rack holding bins, shows the sum of its sub-storages once every sub-storage has a capacity |
+
+### Room to spare
+
+When storages have a capacity, the list page starts with **Room to spare**: storages with space left, most free first. The bin pickers in **Receive** (on the Pending page) and **Move** show free space next to each storage, e.g. "12 · 6 free". Receive warns, without blocking, when a bin can't take everything you're receiving.
 
 ### Name expansion
 

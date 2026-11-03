@@ -3,11 +3,11 @@ import { buildDescendantsMap, getStorageAncestry } from "../storages";
 import type { Storage } from "@cellarboss/types";
 
 const storages: Storage[] = [
-  { id: 1, name: "Room", parent: null, locationId: 1 },
-  { id: 2, name: "Fridge", parent: 1, locationId: 1 },
-  { id: 3, name: "Rack", parent: 1, locationId: 1 },
-  { id: 4, name: "Shelf", parent: 2, locationId: 1 },
-  { id: 5, name: "Box", parent: 4, locationId: 1 },
+  { id: 1, name: "Room", parent: null, locationId: 1, capacity: null },
+  { id: 2, name: "Fridge", parent: 1, locationId: 1, capacity: null },
+  { id: 3, name: "Rack", parent: 1, locationId: 1, capacity: null },
+  { id: 4, name: "Shelf", parent: 2, locationId: 1, capacity: null },
+  { id: 5, name: "Box", parent: 4, locationId: 1, capacity: null },
 ];
 const storageMap = new Map(storages.map((s) => [s.id, s]));
 
@@ -38,8 +38,8 @@ describe("buildDescendantsMap", () => {
 
   it("does not loop forever on circular parents", () => {
     const circular: Storage[] = [
-      { id: 1, name: "A", parent: 2, locationId: 1 },
-      { id: 2, name: "B", parent: 1, locationId: 1 },
+      { id: 1, name: "A", parent: 2, locationId: 1, capacity: null },
+      { id: 2, name: "B", parent: 1, locationId: 1, capacity: null },
     ];
     const map = buildDescendantsMap(circular);
     expect(map.get(1)?.has(2)).toBe(true);
@@ -48,9 +48,9 @@ describe("buildDescendantsMap", () => {
 
   it("gives every storage in a cycle the cycle's full subtree", () => {
     const circular: Storage[] = [
-      { id: 1, name: "A", parent: 2, locationId: 1 },
-      { id: 2, name: "B", parent: 1, locationId: 1 },
-      { id: 3, name: "C", parent: 1, locationId: 1 },
+      { id: 1, name: "A", parent: 2, locationId: 1, capacity: null },
+      { id: 2, name: "B", parent: 1, locationId: 1, capacity: null },
+      { id: 3, name: "C", parent: 1, locationId: 1, capacity: null },
     ];
     const map = buildDescendantsMap(circular);
     expect([...map.get(1)!].sort()).toEqual([1, 2, 3]);
@@ -94,14 +94,20 @@ describe("getStorageAncestry", () => {
 
   it("stops at a missing parent", () => {
     const orphan = new Map(storageMap);
-    orphan.set(6, { id: 6, name: "Orphan", parent: 99, locationId: 1 });
+    orphan.set(6, {
+      id: 6,
+      name: "Orphan",
+      parent: 99,
+      locationId: 1,
+      capacity: null,
+    });
     expect(names(getStorageAncestry(6, orphan))).toEqual(["Orphan"]);
   });
 
   it("does not loop forever on circular parents", () => {
     const circular = new Map<number, Storage>([
-      [1, { id: 1, name: "A", parent: 2, locationId: 1 }],
-      [2, { id: 2, name: "B", parent: 1, locationId: 1 }],
+      [1, { id: 1, name: "A", parent: 2, locationId: 1, capacity: null }],
+      [2, { id: 2, name: "B", parent: 1, locationId: 1, capacity: null }],
     ]);
     expect(names(getStorageAncestry(1, circular))).toEqual(["B", "A"]);
   });

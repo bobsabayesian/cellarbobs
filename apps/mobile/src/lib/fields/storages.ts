@@ -31,4 +31,10 @@ export const storageFields: FieldConfig<Storage>[] = [
     },
     validator: storageFormValidators.parent,
   },
+  {
+    key: "capacity",
+    label: "Capacity (bottles)",
+    type: "number",
+    validator: storageFormValidators.capacity,
+  },
 ];

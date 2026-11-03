@@ -2,7 +2,11 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateVintageCounts } from "@/lib/functions/invalidate-vintage-counts";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { parseAsBoolean, useQueryState } from "nuqs";
+import { hidesConsumed } from "@cellarboss/common/settings";
+import { isConsumedStatus } from "@cellarboss/validators";
+import { Button } from "@/components/ui/button";
 import { getBottles, deleteBottle, updateBottle } from "@/lib/api/bottles";
 import { getVintages } from "@/lib/api/vintages";
 import { getWines } from "@/lib/api/wines";
@@ -18,7 +22,7 @@ import {
   getVintageName,
   buildWineGroupedOptions,
 } from "@/lib/functions/bottles";
-import { buildDescendantsMap } from "@cellarboss/common/storages";
+import { buildDescendantsMap, storageFill } from "@cellarboss/common/storages";
 import {
   DataTable,
   type BulkEditField,
@@ -92,6 +96,13 @@ export default function BottlesPage() {
     queryFn: getCountries,
   });
   const settings = useSettingsContext();
+  // Consumed bottles are hidden unless asked for (Application Settings:
+  // hideConsumed) or a status filter in the URL picks statuses explicitly.
+  const searchParams = useSearchParams();
+  const [includeConsumed, setIncludeConsumed] = useQueryState(
+    "consumed",
+    parseAsBoolean.withDefault(false),
+  );
 
   const result = queryGate([
     bottleQuery,
@@ -117,6 +128,15 @@ export default function BottlesPage() {
   ] = result.data;
   const currency = settings.get("currency") as string | undefined;
   const dateFormat = settings.get("date") as string | undefined;
+  const fill = storageFill(storages, bottles);
+  const hideSetting = hidesConsumed(settings);
+  const hide = hideSetting && !includeConsumed && !searchParams.get("status");
+  const consumedCount = bottles.filter((b) =>
+    isConsumedStatus(b.status),
+  ).length;
+  const visibleBottles = hide
+    ? bottles.filter((b) => !isConsumedStatus(b.status))
+    : bottles;
 
   const vintageMap = new Map(vintages.map((v) => [v.id, v]));
   const wineMap = new Map(wines.map((w: Wine) => [w.id, w]));
@@ -452,6 +472,7 @@ export default function BottlesPage() {
           />
           <MoveBottleButton
             storages={storages}
+            fill={fill}
             currentStorageId={row.original.storageId}
             onMove={(id) => handleMove(row.original, id)}
           />
@@ -544,7 +565,7 @@ export default function BottlesPage() {
     <section>
       <PageHeader title="Bottles" />
       <DataTable<Bottle>
-        data={bottles}
+        data={visibleBottles}
         columns={columns}
         filterColumnName="vintage"
         defaultSortColumn="purchaseDate"
@@ -553,6 +574,18 @@ export default function BottlesPage() {
         bulkEditFields={bulkEditFields}
         onBulkEdit={handleBulkEdit}
         buttons={[
+          ...(hideSetting && consumedCount > 0 && !searchParams.get("status")
+            ? [
+                <Button
+                  key="consumed"
+                  variant="outline"
+                  aria-pressed={!hide}
+                  onClick={() => setIncludeConsumed(hide ? true : null)}
+                >
+                  {hide ? `Show consumed (${consumedCount})` : "Hide consumed"}
+                </Button>,
+              ]
+            : []),
           <AddButton
             onClick={async () => router.push("/bottles/new")}
             subject="Bottle"

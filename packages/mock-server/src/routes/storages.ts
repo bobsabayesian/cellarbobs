@@ -20,7 +20,11 @@ export function registerStorageRoutes(app: Hono, state: MockState) {
     const body = await c.req.json();
     const result = createStorageSchema.safeParse(body);
     if (!result.success) return c.json({ error: result.error.issues }, 400);
-    const storage = { id: nextId(state.storages), ...result.data };
+    const storage = {
+      id: nextId(state.storages),
+      capacity: null,
+      ...result.data,
+    };
     state.storages.push(storage);
     return c.json(storage, 201);
   });

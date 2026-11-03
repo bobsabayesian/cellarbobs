@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Truck } from "lucide-react";
 import type { Bottle, Storage } from "@cellarboss/types";
-import { getStorageAncestry } from "@cellarboss/common/storages";
+import { getStorageAncestry, storageFill } from "@cellarboss/common/storages";
 import { formatPrice, formatStatus } from "@cellarboss/common/format";
 import { PENDING_STATUSES } from "@/lib/constants/pending";
 import { useApiQuery } from "@/hooks/use-api-query";
@@ -118,6 +118,7 @@ export default function PendingPage() {
           <ReceiveBottlesDialog
             count={selected.size}
             storages={storages}
+            fill={storageFill(storages, bottles)}
             onReceive={receive}
           />
         }

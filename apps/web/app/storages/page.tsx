@@ -5,6 +5,13 @@ import type { Storage } from "@cellarboss/types";
 import { buildTree, TreeNode } from "@/lib/functions/tree";
 import { getStorages, deleteStorage, updateStorage } from "@/lib/api/storages";
 import { getLocations } from "@/lib/api/locations";
+import { getBottles } from "@/lib/api/bottles";
+import {
+  describeFree,
+  getStorageAncestry,
+  storageFill,
+} from "@cellarboss/common/storages";
+import { StorageFillBar } from "@/components/storage/StorageFillBar";
 import {
   DataTable,
   FilterType,
@@ -77,11 +84,21 @@ export default function StoragesPage() {
     queryKey: ["locations"],
     queryFn: getLocations,
   });
+  const bottleQuery = useApiQuery({
+    queryKey: ["bottles"],
+    queryFn: getBottles,
+  });
 
-  const result = queryGate([storageQuery, locationQuery]);
+  const result = queryGate([storageQuery, locationQuery, bottleQuery]);
   if (!result.ready) return result.gate;
 
-  const [storagesList, locationList] = result.data;
+  const [storagesList, locationList, bottles] = result.data;
+  const fill = storageFill(storagesList, bottles);
+  // Bins with room, most free first: where to put the next delivery.
+  const storageMap = new Map(storagesList.map((s) => [s.id, s]));
+  const withRoom = storagesList
+    .filter((s) => s.capacity !== null && (fill.get(s.id)?.free ?? 0) > 0)
+    .sort((a, b) => (fill.get(b.id)?.free ?? 0) - (fill.get(a.id)?.free ?? 0));
   const treeData = buildTree(storagesList, "parent");
 
   const bulkEditFields: BulkEditField<Storage>[] = [
@@ -158,6 +175,14 @@ export default function StoragesPage() {
       },
     },
     {
+      id: "fill",
+      header: "Bottles",
+      enableColumnFilter: false,
+      enableSorting: true,
+      accessorFn: (row: TreeNode<Storage>) => fill.get(row.id)?.stored ?? 0,
+      cell: ({ row }) => <StorageFillBar fill={fill.get(row.original.id)} />,
+    },
+    {
       // Hidden column used for filtering by location
       id: "locationId",
       header: "",
@@ -190,6 +215,34 @@ export default function StoragesPage() {
   return (
     <section>
       <PageHeader title="Storages" />
+      {withRoom.length > 0 && (
+        <div className="mb-6 rounded-lg border p-4">
+          <h2 className="font-semibold">Room to spare</h2>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Storages with a capacity and space left, most free first.
+          </p>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {withRoom.slice(0, 9).map((s) => (
+              <li
+                key={s.id}
+                className="flex items-center justify-between gap-3"
+              >
+                <a
+                  href={`/storages/${s.id}`}
+                  className="truncate hover:underline"
+                >
+                  {getStorageAncestry(s.id, storageMap)
+                    .map((x) => x.name)
+                    .join(" › ")}
+                </a>
+                <span className="shrink-0 text-sm text-muted-foreground tabular-nums">
+                  {describeFree(fill.get(s.id))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <DataTable<TreeNode<Storage>>
         data={treeData}
         columns={columns}
