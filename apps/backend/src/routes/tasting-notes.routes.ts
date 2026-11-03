@@ -7,6 +7,7 @@ import {
 } from "@cellarboss/validators";
 import { requireAuth } from "@middleware/auth.middleware.js";
 import { parseId } from "@utils/id.js";
+import { TastingNoteError } from "@controllers/tasting-notes.controller.js";
 import { createCrudRoutes, jsonContent } from "@openapi/helpers.js";
 import { tastingNoteResponseSchema, errorSchema } from "@openapi/schemas.js";
 
@@ -64,6 +65,18 @@ export function registerTastingNoteRoutes(app: OpenAPIHono) {
   const tastingNote = new OpenAPIHono();
 
   tastingNote.use("*", requireAuth);
+
+  // Rejected formats or answers are the caller's mistake, not a server error.
+  tastingNote.onError((err, c) => {
+    if (err instanceof TastingNoteError)
+      return c.json({ error: err.message }, 400);
+    throw err;
+  });
+
+  // Registered before /{id} so "formats" isn't read as an id.
+  tastingNote.get("/formats", (c) =>
+    c.json(tastingNotesController.listFormats()),
+  );
 
   tastingNote.openapi(crudRoutes.list, async (c) => {
     const data = await tastingNotesController.list();

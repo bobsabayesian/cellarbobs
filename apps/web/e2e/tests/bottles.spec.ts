@@ -66,6 +66,23 @@ test.describe("Bottles page", () => {
     await expect(page.getByText("Château Margaux").first()).toBeVisible();
   });
 
+  test("the note icon starts a tasting note for that bottle's vintage", async ({
+    adminPage: page,
+  }) => {
+    await page.goto("/bottles");
+
+    await page
+      .getByRole("button", { name: "Add tasting note" })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/tasting-notes\/new\?vintageId=\d+/);
+    await expect(page.getByRole("radio", { name: /Quick/ })).toBeChecked();
+
+    // Cancelling returns to the bottles list, not a vintage page.
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page).toHaveURL("/bottles");
+  });
+
   test("Add Bottle button navigates to new bottle page", async ({
     adminPage: page,
   }) => {

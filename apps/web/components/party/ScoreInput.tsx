@@ -10,12 +10,41 @@ const QUICK_SCORES = [85, 88, 90, 92, 95];
 type ScoreInputProps = {
   /** Stored score, 0-100, or null when unrated. */
   value: number | null;
-  scale: 100 | 5;
+  /** 10 is for tasting notes (0-10, stored as tens like the other scales). */
+  scale: 100 | 10 | 5;
   onChange: (score: number | null) => void;
 };
 
 /** Big, thumb-friendly score entry: a 100-point slider or five stars. */
 export function ScoreInput({ value, scale, onChange }: ScoreInputProps) {
+  if (scale === 10) {
+    const picked = value === null ? null : Math.round(value / 10);
+    return (
+      <div
+        className="grid grid-cols-6 gap-2"
+        role="radiogroup"
+        aria-label="Score out of 10"
+      >
+        {Array.from({ length: 11 }, (_, n) => (
+          <button
+            key={n}
+            type="button"
+            role="radio"
+            aria-checked={picked === n}
+            onClick={() => onChange(picked === n ? null : n * 10)}
+            className={cn(
+              "rounded-md border py-3 text-lg font-medium tabular-nums touch-manipulation",
+              picked === n
+                ? "border-primary bg-primary text-primary-foreground"
+                : "bg-background",
+            )}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    );
+  }
   if (scale === 5) {
     const stars = value === null ? 0 : fromStoredScore(value, 5);
     return (

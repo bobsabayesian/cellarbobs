@@ -29,6 +29,8 @@ import {
   type FilterDef,
   FilterType,
 } from "@/components/datatable/components/DataTable";
+import { NotebookPen } from "lucide-react";
+import { IconButton } from "@/components/buttons/IconButton";
 import { EditButton } from "@/components/buttons/EditButton";
 import { DeleteButton } from "@/components/buttons/DeleteButton";
 import { MoveBottleButton } from "@/components/buttons/MoveBottleButton";
@@ -479,6 +481,16 @@ export default function BottlesPage() {
           <ChangeStatusButton
             currentStatus={row.original.status}
             onChangeStatus={(s) => handleChangeStatus(row.original, s)}
+          />
+          <IconButton
+            icon={NotebookPen}
+            tooltip="Add tasting note"
+            onClick={() => {
+              const back = window.location.pathname + window.location.search;
+              router.push(
+                `/tasting-notes/new?vintageId=${row.original.vintageId}&returnTo=${encodeURIComponent(back)}`,
+              );
+            }}
           />
           <EditButton
             onEdit={async () => router.push(`/bottles/${row.original.id}/edit`)}

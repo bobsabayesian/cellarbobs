@@ -1,12 +1,94 @@
 import type { Hono } from "hono";
 import type { MockState } from "../index";
+import type { TastingFormat } from "@cellarboss/types";
 import { nextId } from "../ids";
 import {
   createTastingNoteSchema,
   updateTastingNoteSchema,
 } from "@cellarboss/validators";
 
+/** Small stand-ins for the backend's beginner and advanced format files. */
+const FORMATS: TastingFormat[] = [
+  {
+    id: "beginner",
+    name: "Beginner",
+    rating: {
+      kind: "reaction",
+      options: [
+        { label: "loved it", score: 95 },
+        { label: "liked it", score: 80 },
+        { label: "not for me", score: 50 },
+      ],
+    },
+    steps: [
+      {
+        id: "taste",
+        title: "Taste",
+        blocks: [
+          {
+            id: "palate",
+            title: "In your mouth",
+            fields: [
+              {
+                key: "tannin",
+                label: "Tannin",
+                kind: "scale",
+                options: ["soft", "medium", "grippy"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "advanced",
+    name: "Advanced",
+    rating: { kind: "score" },
+    steps: [
+      {
+        id: "look",
+        title: "Look",
+        blocks: [
+          {
+            id: "appearance",
+            title: "Appearance",
+            fields: [
+              {
+                key: "clarity",
+                label: "Clarity",
+                kind: "scale",
+                options: ["hazy", "clear", "brilliant"],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "palate",
+        title: "Palate",
+        blocks: [
+          {
+            id: "structure",
+            title: "Structure",
+            fields: [
+              {
+                key: "body",
+                label: "Body",
+                kind: "scale",
+                options: ["light", "medium", "full"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
 export function registerTastingNoteRoutes(app: Hono, state: MockState) {
+  app.get("/api/tasting-note/formats", (c) => c.json(FORMATS));
+
   app.get("/api/tasting-note", (c) => {
     return c.json(state.tastingNotes);
   });

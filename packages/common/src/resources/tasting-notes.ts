@@ -1,4 +1,5 @@
 import type {
+  TastingFormat,
   TastingNote,
   CreateTastingNote,
   UpdateTastingNote,
@@ -16,6 +17,10 @@ export function tastingNotesResource(request: RequestFn) {
     getByWineId: (wineId: number): Promise<ApiResult<TastingNote[]>> =>
       request<TastingNote[]>("tasting-note/wine/" + wineId, "GET"),
 
+    /** The formats a note can be written in (beginner, advanced). */
+    getFormats: (): Promise<ApiResult<TastingFormat[]>> =>
+      request<TastingFormat[]>("tasting-note/formats", "GET"),
+
     getById: (id: number): Promise<ApiResult<TastingNote>> =>
       request<TastingNote>("tasting-note/" + id, "GET"),
 
@@ -27,6 +32,8 @@ export function tastingNotesResource(request: RequestFn) {
           vintageId: Number(data.vintageId),
           score: Number(data.score),
           notes: data.notes,
+          format: data.format ?? null,
+          answers: data.answers ?? {},
         }),
       ),
 

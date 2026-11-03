@@ -22,7 +22,7 @@ export type FormatDraft = {
 
 type FormatTastingProps = {
   format: TastingFormat;
-  scoreScale: 100 | 5;
+  scoreScale: 100 | 10 | 5;
   draft: FormatDraft;
   onChange: (patch: Partial<FormatDraft>) => void;
   /** Shown on the last step's button, e.g. "Next: Bottle B". */

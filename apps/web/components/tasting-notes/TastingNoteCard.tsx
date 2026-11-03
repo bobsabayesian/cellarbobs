@@ -3,6 +3,7 @@ import type { TastingNote } from "@cellarboss/types";
 import { EditButton } from "@/components/buttons/EditButton";
 import { DeleteButton } from "@/components/buttons/DeleteButton";
 import { Badge } from "@/components/ui/badge";
+import { NoteAnswers } from "@/components/tasting-notes/NoteAnswers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Barrel, Calendar, User } from "lucide-react";
 import { formatDateTime } from "@/lib/functions/format";
@@ -110,11 +111,12 @@ export function TastingNoteCard({
             </Link>
           </span>
         </div>
-        {note.notes && (
-          <p className="text-sm whitespace-pre-wrap flex-1 min-w-0">
-            {note.notes}
-          </p>
-        )}
+        <div className="flex-1 min-w-0">
+          {note.notes && (
+            <p className="text-sm whitespace-pre-wrap">{note.notes}</p>
+          )}
+          <NoteAnswers note={note} />
+        </div>
       </div>
     </>
   ) : (
@@ -123,6 +125,7 @@ export function TastingNoteCard({
       {note.notes && (
         <p className="text-sm whitespace-pre-wrap mt-2">{note.notes}</p>
       )}
+      <NoteAnswers note={note} />
     </>
   );
 

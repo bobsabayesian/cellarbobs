@@ -56,13 +56,13 @@ describe("Share links API", () => {
     vintageId = (await createTestVintage(db, wine.id, 2019)).id;
     const other = await createTestWine(db, maker.id, null, "Monte Bello");
     otherVintageId = (await createTestVintage(db, other.id, 2015)).id;
-    const bottle = (v: number, status = "stored") => ({
+    const bottle = (v: number, status: "stored" | "drunk" = "stored") => ({
       vintageId: v,
       purchaseDate: "2022-01-01",
       purchasePrice: 40,
       storageId: binId,
       status,
-      size: "standard",
+      size: "standard" as const,
     });
     await db
       .insertInto("bottle")

@@ -1,6 +1,7 @@
 "use server";
 
 import type {
+  TastingFormat,
   TastingNote,
   CreateTastingNote,
   UpdateTastingNote,
@@ -47,4 +48,8 @@ export async function deleteTastingNote(
   id: number,
 ): Promise<ApiResult<boolean>> {
   return api.tastingNotes.delete(id);
+}
+
+export async function getTastingFormats(): Promise<ApiResult<TastingFormat[]>> {
+  return api.tastingNotes.getFormats();
 }

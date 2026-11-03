@@ -57,8 +57,14 @@ export interface WineMakerTable extends Omit<WineMaker, "id"> {
   id: Generated<number>;
 }
 
-export interface TastingNoteTable extends Omit<TastingNote, "id" | "author"> {
+export interface TastingNoteTable extends Omit<
+  TastingNote,
+  "id" | "author" | "answers" | "format"
+> {
   id: Generated<number>;
+  format: TastingNote["format"];
+  /** JSON of the format's answers. */
+  answers: string | null;
 }
 
 export interface ImageTable extends Omit<Image, "id" | "isFavourite"> {

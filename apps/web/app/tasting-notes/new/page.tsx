@@ -2,55 +2,23 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import type { TastingNote, CreateTastingNote } from "@cellarboss/types";
-import { GenericCard } from "@/components/cards/GenericCard";
-import { tastingNoteCreateFields } from "@/lib/fields/tastingNotes";
-import { createTastingNote } from "@/lib/api/tastingNotes";
-import type { ApiResult } from "@/lib/api/types";
+import { NoteEditor } from "@/components/tasting-notes/NoteEditor";
 import { PageHeader } from "@/components/page/PageHeader";
 import { parseIdParam } from "@/lib/functions/strings";
-
-async function handleCreate(
-  data: TastingNote,
-): Promise<ApiResult<TastingNote>> {
-  const noteData: CreateTastingNote = {
-    vintageId: Number(data.vintageId),
-    score: Number(data.score),
-    notes: data.notes,
-  };
-  return createTastingNote(noteData);
-}
 
 function NewTastingNoteForm() {
   const searchParams = useSearchParams();
   const vintageId = parseIdParam(searchParams.get("vintageId"));
   const wineId = parseIdParam(searchParams.get("wineId"));
+  const returnTo =
+    searchParams.get("returnTo") ??
+    (vintageId
+      ? `/vintages/${vintageId}`
+      : wineId
+        ? `/wines/${wineId}`
+        : "/tasting-notes");
 
-  const defaultData: TastingNote = {
-    id: 0,
-    vintageId: vintageId ?? 0,
-    date: "",
-    authorId: "",
-    author: "",
-    score: 0,
-    notes: "",
-  };
-
-  const redirectTo = vintageId
-    ? `/vintages/${vintageId}`
-    : wineId
-      ? `/wines/${wineId}`
-      : "/tasting-notes";
-
-  return (
-    <GenericCard<TastingNote>
-      mode="create"
-      data={defaultData}
-      fields={tastingNoteCreateFields}
-      processSave={handleCreate}
-      redirectTo={redirectTo}
-    />
-  );
+  return <NoteEditor vintageId={vintageId} returnTo={returnTo} />;
 }
 
 export default function NewTastingNotePage() {

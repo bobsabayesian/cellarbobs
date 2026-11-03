@@ -81,10 +81,9 @@ test.describe("Create forms", () => {
   test("adds a tasting note for a vintage", async ({ adminPage: page }) => {
     await page.goto("/tasting-notes/new?vintageId=2");
 
-    await page.getByRole("button", { name: "Score 8 out of 10" }).click();
-    await expect(page.getByText("8/10")).toBeVisible();
+    await page.getByRole("radio", { name: "8", exact: true }).click();
     await page.getByLabel("Notes").fill("Buttery with a long finish.");
-    await saveForm(page);
+    await page.getByRole("button", { name: "Save note" }).click();
 
     await expect(page).toHaveURL("/vintages/2");
     const { tastingNotes } = await getState();
@@ -93,6 +92,26 @@ test.describe("Create forms", () => {
         vintageId: 2,
         score: 8,
         notes: "Buttery with a long finish.",
+      }),
+    );
+  });
+
+  test("writes a beginner-format tasting note", async ({ adminPage: page }) => {
+    await page.goto("/tasting-notes/new?vintageId=2");
+
+    await page.getByRole("radio", { name: /Beginner/ }).click();
+    await page.getByRole("button", { name: "grippy" }).click();
+    await page.getByRole("button", { name: "liked it" }).click();
+    await page.getByRole("button", { name: "Save note" }).click();
+
+    await expect(page).toHaveURL("/vintages/2");
+    const { tastingNotes } = await getState();
+    expect(tastingNotes).toContainEqual(
+      expect.objectContaining({
+        vintageId: 2,
+        score: 8,
+        format: "beginner",
+        answers: { tannin: "grippy" },
       }),
     );
   });
@@ -144,10 +163,12 @@ test.describe("Edit forms", () => {
   }) => {
     await page.goto("/tasting-notes/1/edit");
 
-    await expect(page.getByText("9/10")).toBeVisible();
-    await page.getByRole("button", { name: "Score 6 out of 10" }).click();
+    await expect(
+      page.getByRole("radio", { name: "9", exact: true }),
+    ).toBeChecked();
+    await page.getByRole("radio", { name: "6", exact: true }).click();
     await page.getByLabel("Notes").fill("Closed up since last time.");
-    await saveForm(page);
+    await page.getByRole("button", { name: "Save changes" }).click();
 
     const { tastingNotes } = await getState();
     expect(tastingNotes.find((n) => n.id === 1)).toMatchObject({
