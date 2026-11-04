@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2, PenLine, Plus } from "lucide-react";
+import { Download, HelpCircle, Loader2, PenLine, Plus } from "lucide-react";
 import type { GuestBottleInput, ImportPreview } from "@cellarboss/types";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { getWines } from "@/lib/api/wines";
@@ -16,6 +16,11 @@ import { ImportForm } from "@/components/import/ImportForm";
 import { cn } from "@/lib/utils";
 
 type GuestBottlePickerProps = {
+  /**
+   * "add" adds a guest's bottle (who brought it, and a mystery option).
+   * "details" says what a mystery bottle was: just the wine.
+   */
+  mode?: "add" | "details";
   /** Returns an error message, or null when the bottle was added. */
   onAdd: (
     bottle: GuestBottleInput,
@@ -36,15 +41,22 @@ type NewWineState =
  * (or, mid-party, when added), together with an inventory bottle that's out
  * for the tasting; cancelling the party removes them again.
  */
-export function GuestBottlePicker({ onAdd }: GuestBottlePickerProps) {
-  const [mode, setMode] = useState<"list" | "new">("list");
+export function GuestBottlePicker({
+  onAdd,
+  mode: purpose = "add",
+}: GuestBottlePickerProps) {
+  const details = purpose === "details";
+  const submitLabel = details ? "Save details" : "Add guest bottle";
+  const [mode, setMode] = useState<"list" | "new" | "mystery">("list");
   const [broughtBy, setBroughtBy] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const add = async (bottle: GuestBottleInput, label: string) => {
     setError(null);
     const refused = await onAdd(
-      { ...bottle, broughtBy: broughtBy.trim() || undefined },
+      details
+        ? bottle
+        : { ...bottle, broughtBy: broughtBy.trim() || undefined },
       label,
     );
     if (refused) setError(refused);
@@ -55,13 +67,15 @@ export function GuestBottlePicker({ onAdd }: GuestBottlePickerProps) {
   return (
     <div className="space-y-4 rounded-lg border p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <Input
-          className="max-w-56"
-          placeholder="Brought by"
-          maxLength={40}
-          value={broughtBy}
-          onChange={(e) => setBroughtBy(e.target.value)}
-        />
+        {!details && (
+          <Input
+            className="max-w-56"
+            placeholder="Brought by"
+            maxLength={40}
+            value={broughtBy}
+            onChange={(e) => setBroughtBy(e.target.value)}
+          />
+        )}
         <div
           className="inline-flex rounded-md border p-0.5"
           role="tablist"
@@ -71,6 +85,7 @@ export function GuestBottlePicker({ onAdd }: GuestBottlePickerProps) {
             [
               ["list", "From your wine list"],
               ["new", "New wine"],
+              ...(details ? [] : [["mystery", "Mystery bottle"] as const]),
             ] as const
           ).map(([value, label]) => (
             <button
@@ -92,7 +107,25 @@ export function GuestBottlePicker({ onAdd }: GuestBottlePickerProps) {
         </div>
       </div>
 
-      {mode === "list" ? <FromWineList onAdd={add} /> : <NewWine onAdd={add} />}
+      {mode === "list" ? (
+        <FromWineList onAdd={add} submitLabel={submitLabel} />
+      ) : mode === "new" ? (
+        <NewWine onAdd={add} submitLabel={submitLabel} />
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            You don&apos;t know what it is yet. It goes in the party as a
+            placeholder, guests never see it, and you fill in the wine
+            afterwards, even after the party is over.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => add({ mystery: true }, "Mystery bottle")}
+          >
+            <HelpCircle /> Add mystery bottle
+          </Button>
+        </div>
+      )}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
@@ -100,8 +133,10 @@ export function GuestBottlePicker({ onAdd }: GuestBottlePickerProps) {
 
 function FromWineList({
   onAdd,
+  submitLabel,
 }: {
   onAdd: (bottle: GuestBottleInput, label: string) => Promise<string | null>;
+  submitLabel: string;
 }) {
   const winesQuery = useApiQuery({ queryKey: ["wines"], queryFn: getWines });
   const makersQuery = useApiQuery({
@@ -207,7 +242,7 @@ function FromWineList({
           disabled={!selected || !yearValid}
           onClick={submit}
         >
-          <Plus /> Add guest bottle
+          <Plus /> {submitLabel}
         </Button>
       </div>
     </div>
@@ -216,8 +251,10 @@ function FromWineList({
 
 function NewWine({
   onAdd,
+  submitLabel,
 }: {
   onAdd: (bottle: GuestBottleInput, label: string) => Promise<string | null>;
+  submitLabel: string;
 }) {
   const [url, setUrl] = useState("");
   const [state, setState] = useState<NewWineState>({ step: "choose" });
@@ -251,7 +288,7 @@ function NewWine({
         <ImportForm
           key={state.attempt}
           preview={state.preview}
-          commitLabel="Add guest bottle"
+          commitLabel={submitLabel}
           onCommit={async (commit, label) => {
             const refused = await onAdd({ newWine: commit }, label);
             if (!refused) {

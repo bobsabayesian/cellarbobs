@@ -2,6 +2,7 @@ import { Hono, type Context } from "hono";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import type { ZodType } from "zod";
 import {
+  bottleDetailsSchema,
   createPartySchema,
   guestBottleSchema,
   joinPartySchema,
@@ -104,6 +105,16 @@ export function registerPartyRoutes(app: OpenAPIHono) {
   host.get(
     "/palate",
     guarded(async (c) => c.json(await palate.summary(user(c).id))),
+  );
+
+  host.post(
+    "/:id/bottle/:partyBottleId/details",
+    guarded(async (c) => {
+      const details = await body(c, bottleDetailsSchema);
+      return c.json(
+        await parties.fillDetails(id(c), id(c, "partyBottleId"), details),
+      );
+    }),
   );
 
   host.post(

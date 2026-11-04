@@ -631,6 +631,213 @@ describe("Party API", () => {
     });
   });
 
+  describe("mystery bottles", () => {
+    const post = (path: string, body?: unknown) =>
+      app.request(
+        path,
+        body === undefined ? { method: "POST" } : json2("POST", body),
+      );
+    const json2 = (method: string, body: unknown) => ({
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    async function mysteryParty() {
+      const { res, party } = await createParty({
+        bottleIds: [bottleIds[0]],
+        guestBottles: [{ mystery: true, broughtBy: "Dave" }],
+      });
+      expect(res.status).toBe(201);
+      const mystery = party.bottles.find(
+        (b: { broughtBy: string | null }) => b.broughtBy === "Dave",
+      );
+      return { party, mystery };
+    }
+
+    async function realWine() {
+      const maker = await createTestWineMaker(db, "Giacomo Conterno");
+      const wine = await createTestWine(db, maker.id, null, "Barolo Cerretta");
+      return wine.id;
+    }
+
+    it("adds a placeholder wine the host fills in later", async () => {
+      const { party, mystery } = await mysteryParty();
+      expect(mystery.needsDetails).toBe(true);
+      expect(mystery.wine.wineName).toBe("Mystery bottle (Fall Nebbiolo)");
+      expect(mystery.wine.winemaker).toBe("Unknown producer");
+      const known = party.bottles.find(
+        (b: { id: number }) => b.id !== mystery.id,
+      );
+      expect(known.needsDetails).toBe(false);
+      const row = await db
+        .selectFrom("bottle")
+        .select(["status", "purchasePrice"])
+        .where("id", "=", mystery.bottleId)
+        .executeTakeFirstOrThrow();
+      expect(row.status).toBe("in-tasting");
+
+      const summary = await (await app.request("/party")).json();
+      expect(summary[0].needsDetailsCount).toBe(1);
+    });
+
+    it("never shows the placeholder to guests, even once revealed", async () => {
+      const { party, mystery } = await mysteryParty();
+      await post(`/party/${party.id}/reveal/${mystery.id}`);
+      const view = await (
+        await app.request(`/public/party/${party.token}`)
+      ).json();
+      const bottle = view.bottles.find(
+        (b: { label: string }) => b.label === mystery.label,
+      );
+      expect(bottle.revealed).toBe(true);
+      expect(bottle.wine).toBeNull();
+    });
+
+    it("swaps in a wine from the list and removes the placeholder", async () => {
+      const { party, mystery } = await mysteryParty();
+      const wineId = await realWine();
+      const res = await post(
+        `/party/${party.id}/bottle/${mystery.id}/details`,
+        { wineId, year: 2016 },
+      );
+      expect(res.status).toBe(200);
+      const detail = await res.json();
+      const filled = detail.bottles.find(
+        (b: { id: number }) => b.id === mystery.id,
+      );
+      expect(filled.needsDetails).toBe(false);
+      expect(filled.wine).toMatchObject({
+        wineName: "Barolo Cerretta",
+        winemaker: "Giacomo Conterno",
+        year: 2016,
+      });
+      const bottle = await db
+        .selectFrom("bottle")
+        .select("vintageId")
+        .where("id", "=", mystery.bottleId)
+        .executeTakeFirstOrThrow();
+      expect(bottle.vintageId).toBe(filled.vintageId);
+      // The placeholder wine, vintage and producer are gone.
+      expect(
+        await db
+          .selectFrom("wine")
+          .select("id")
+          .where("name", "like", "Mystery bottle%")
+          .execute(),
+      ).toHaveLength(0);
+      expect(
+        await db
+          .selectFrom("winemaker")
+          .select("id")
+          .where("name", "=", "Unknown producer")
+          .execute(),
+      ).toHaveLength(0);
+      // A second fill-in is refused.
+      const again = await post(
+        `/party/${party.id}/bottle/${mystery.id}/details`,
+        { wineId, year: 2016 },
+      );
+      expect(again.status).toBe(409);
+    });
+
+    it("can create a new wine for it", async () => {
+      const { party, mystery } = await mysteryParty();
+      const res = await post(
+        `/party/${party.id}/bottle/${mystery.id}/details`,
+        {
+          newWine: {
+            wine: {
+              name: "Pinot Noir Reserve",
+              type: "red",
+              winemaker: { name: "Fable Farm" },
+              country: null,
+              region: null,
+              grapes: [],
+            },
+            vintage: { year: 2021, drinkFrom: null, drinkUntil: null },
+          },
+        },
+      );
+      expect(res.status).toBe(200);
+      const filled = (await res.json()).bottles.find(
+        (b: { id: number }) => b.id === mystery.id,
+      );
+      expect(filled.wine.wineName).toBe("Pinot Noir Reserve");
+      expect(filled.needsDetails).toBe(false);
+    });
+
+    it("holds back the host's note until the details are filled in", async () => {
+      const { party, mystery } = await mysteryParty();
+      const host = await (await post(`/party/${party.id}/host-session`)).json();
+      await review(party.token, mystery.label, host.secret, {
+        score: 92,
+        notes: "Dark cherry",
+        answers: {},
+      });
+      const finished = await post(`/party/${party.id}/finish`);
+      expect(finished.status).toBe(200);
+      const notes = () => db.selectFrom("tastingNote").selectAll().execute();
+      expect(await notes()).toHaveLength(0);
+      // Still drunk, and the party list says it needs details.
+      const row = await db
+        .selectFrom("bottle")
+        .select("status")
+        .where("id", "=", mystery.bottleId)
+        .executeTakeFirstOrThrow();
+      expect(row.status).toBe("drunk");
+      expect(
+        (await (await app.request("/party")).json())[0].needsDetailsCount,
+      ).toBe(1);
+
+      const wineId = await realWine();
+      const res = await post(
+        `/party/${party.id}/bottle/${mystery.id}/details`,
+        {
+          wineId,
+          year: 2016,
+        },
+      );
+      expect(res.status).toBe(200);
+      const saved = await notes();
+      expect(saved).toHaveLength(1);
+      expect(saved[0].notes).toContain("Dark cherry");
+      const vintage = await db
+        .selectFrom("vintage")
+        .select("year")
+        .where("id", "=", saved[0].vintageId)
+        .executeTakeFirstOrThrow();
+      expect(vintage.year).toBe(2016);
+      expect(
+        (await (await app.request("/party")).json())[0].needsDetailsCount,
+      ).toBe(0);
+    });
+
+    it("cancelling removes the placeholder like any guest bottle", async () => {
+      const { party } = await mysteryParty();
+      await post(`/party/${party.id}/cancel`);
+      expect(
+        await db
+          .selectFrom("wine")
+          .select("id")
+          .where("name", "like", "Mystery bottle%")
+          .execute(),
+      ).toHaveLength(0);
+    });
+
+    it("refuses details for a bottle that isn't a mystery", async () => {
+      const { party } = await mysteryParty();
+      const known = party.bottles.find(
+        (b: { needsDetails: boolean }) => !b.needsDetails,
+      );
+      const res = await post(`/party/${party.id}/bottle/${known.id}/details`, {
+        wineId: await realWine(),
+        year: 2016,
+      });
+      expect(res.status).toBe(409);
+    });
+  });
+
   describe("tasting formats", () => {
     it("beginner parties rate with reactions and derive tannin and body", async () => {
       const { res, party } = await createParty({

@@ -2,6 +2,7 @@ import type {
   BottleParty,
   CreateParty,
   GuestBottleInput,
+  BottleDetailsInput,
   WantToBuyWine,
   PalateProfile,
   PartyDetail,
@@ -20,6 +21,8 @@ export interface PalateSummary {
 
 /** Request body for a guest bottle: an existing wine, or a new one. */
 function guestBottleBody(bottle: GuestBottleInput) {
+  if ("mystery" in bottle)
+    return { mystery: true, broughtBy: bottle.broughtBy };
   if ("newWine" in bottle)
     return { newWine: bottle.newWine, broughtBy: bottle.broughtBy };
   return {
@@ -87,6 +90,22 @@ export function partiesResource(request: RequestFn) {
         `party/${id}/guest-bottle`,
         "POST",
         JSON.stringify(guestBottleBody(bottle)),
+      ),
+
+    /** Says what a mystery bottle turned out to be. */
+    fillDetails: (
+      id: number,
+      partyBottleId: number,
+      details: BottleDetailsInput,
+    ): Promise<ApiResult<PartyDetail>> =>
+      request<PartyDetail>(
+        `party/${id}/bottle/${partyBottleId}/details`,
+        "POST",
+        JSON.stringify(
+          "newWine" in details
+            ? { newWine: details.newWine }
+            : { wineId: Number(details.wineId), year: details.year },
+        ),
       ),
 
     removeBottle: (

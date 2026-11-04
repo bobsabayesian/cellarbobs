@@ -109,15 +109,23 @@ export interface PartyBottle {
   revealedAt: string | null;
   broughtBy: string | null;
   wantToBuy: boolean;
+  /** A mystery bottle the host hasn't filled in yet: its wine is a placeholder. */
+  needsDetails: boolean;
 }
 
 /**
- * A bottle a guest brings: a wine in the wine list and its vintage year, or
- * a new wine (an import commit) created along with the party.
+ * A bottle a guest brings: a wine in the wine list and its vintage year, a
+ * new wine (an import commit) created along with the party, or a mystery
+ * bottle the host doesn't know yet and fills in afterwards.
  */
 export type GuestBottleInput =
   | { wineId: number; year: number | null; broughtBy?: string }
-  | { newWine: ImportCommit; broughtBy?: string };
+  | { newWine: ImportCommit; broughtBy?: string }
+  | { mystery: true; broughtBy?: string };
+
+/** What a mystery bottle turned out to be: the same choices as a guest bottle. */
+export type BottleDetailsInput =
+  { wineId: number; year: number | null } | { newWine: ImportCommit };
 
 export interface PartyGuest {
   id: number;
@@ -150,6 +158,8 @@ export interface PartyDetail extends TastingParty {
 }
 
 export interface PartySummary extends TastingParty {
+  /** Mystery bottles still waiting for their details. */
+  needsDetailsCount: number;
   bottleCount: number;
   guestCount: number;
   reviewCount: number;

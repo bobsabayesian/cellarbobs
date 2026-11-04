@@ -37,6 +37,20 @@ export const guestBottleSchema = z.union([
     newWine: importCommitSchema.describe("Wine to create, as an import commit"),
     broughtBy: broughtBySchema,
   }),
+  z.object({
+    mystery: z
+      .literal(true)
+      .describe("A bottle the host doesn't know yet; fill in details later"),
+    broughtBy: broughtBySchema,
+  }),
+]);
+
+/** What a mystery bottle turned out to be. */
+export const bottleDetailsSchema = z.union([
+  existingGuestBottleSchema.omit({ broughtBy: true }),
+  z.object({
+    newWine: importCommitSchema.describe("Wine to create, as an import commit"),
+  }),
 ]);
 
 export const wantToBuySchema = z.object({ wantToBuy: z.boolean() });

@@ -6,6 +6,7 @@ import type {
   BottleParty,
   CreateParty,
   GuestBottleInput,
+  BottleDetailsInput,
   PartyDetail,
   PartySummary,
   WantToBuyWine,
@@ -121,4 +122,12 @@ export async function getJoinCode(
     errorCorrectionLevel: "M",
   });
   return { ok: true, data: { url, svg } };
+}
+
+export async function fillBottleDetails(
+  id: number,
+  partyBottleId: number,
+  details: BottleDetailsInput,
+): Promise<ApiResult<PartyDetail>> {
+  return api.parties.fillDetails(id, partyBottleId, details);
 }

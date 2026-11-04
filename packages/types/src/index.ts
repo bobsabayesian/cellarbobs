@@ -62,6 +62,7 @@ export type {
   PartyWine,
   PartyBottle,
   GuestBottleInput,
+  BottleDetailsInput,
   WantToBuyWine,
   PartyGuest,
   PartyReview,

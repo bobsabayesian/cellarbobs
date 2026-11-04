@@ -69,6 +69,15 @@ export default function PartiesPage() {
                     {party.date} · {party.bottleCount} bottles ·{" "}
                     {party.guestCount} tasters · {party.reviewCount} reviews
                   </div>
+                  {party.needsDetailsCount > 0 && (
+                    <Badge variant="destructive" className="mt-1">
+                      {party.needsDetailsCount} mystery{" "}
+                      {party.needsDetailsCount === 1
+                        ? "bottle needs"
+                        : "bottles need"}{" "}
+                      details
+                    </Badge>
+                  )}
                 </div>
                 <Badge variant={STATUS_VARIANT[party.status]}>
                   {party.status}

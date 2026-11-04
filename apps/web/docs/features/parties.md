@@ -40,6 +40,16 @@ Each guest bottle gets a real **bottle in your inventory**, marked **Out (In Tas
 
 Guests only see who brought a bottle after it's revealed.
 
+### Mystery bottles
+
+When a guest hands you a bag and you don't know what's in it, add it as a **Mystery bottle** (the third tab when you add a guest bottle, on the New party page or mid-party with "Someone brought a bottle"). Give it a **Brought by** name if you like.
+
+- It goes in the party as a placeholder, labelled like any other bottle. A bottle is made out for the tasting under a placeholder wine called "Mystery bottle (party title)" by "Unknown producer". Guests never see the placeholder, not even when you reveal the bottle.
+- The console shows a red **Needs details** tag on it, with a **Fill in details** button, and the Tasting Parties list shows how many bottles in each party need details.
+- **Fill in details** works like adding a guest bottle: pick a wine from your wine list and give the vintage, or add a new wine. It replaces the placeholder on the party and on the bottle, and removes the placeholder wine and producer once nothing uses them. You can do it any time, including after the party is finished.
+- When you finish the party, your blind notes for mystery bottles that still need details wait. They're saved as regular tasting notes, on the real wine, when you fill the details in. Guests' ratings and your reveal are unaffected, since they belong to the bottle's label.
+- Cancelling the party removes mystery bottles like any other guest bottle.
+
 ### Want to buy
 
 Liked something a guest brought? Select **Want to buy** on it, once it's revealed or the party has ended. Flagged wines appear in a **Want to buy** list on the Tasting Parties page, with your blind score, the group average and who brought it. The `list_want_to_buy` MCP tool gives assistants the same list.

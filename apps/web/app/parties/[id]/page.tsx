@@ -23,6 +23,7 @@ import { queryGate } from "@/lib/functions/query-gate";
 import {
   addGuestBottle,
   cancelParty,
+  fillBottleDetails,
   finishParty,
   getParty,
   removePartyBottle,
@@ -52,6 +53,8 @@ export default function PartyConsolePage() {
   // pours the bottles opens the pour list to see which bottle is which label.
   const [showPourList, setShowPourList] = useState(false);
   const [addingGuestBottle, setAddingGuestBottle] = useState(false);
+  // The mystery bottle whose details are being filled in.
+  const [fillingId, setFillingId] = useState<number | null>(null);
   const [pdfScores, setPdfScores] = useState(true);
 
   const partyQuery = useApiQuery({
@@ -79,6 +82,7 @@ export default function PartyConsolePage() {
 
   const guestName = new Map(party.guests.map((g) => [g.id, g.name]));
   const unrevealed = party.bottles.filter((b) => !b.revealedAt).length;
+  const mystery = party.bottles.filter((b) => b.needsDetails).length;
   const unpoured = party.bottles.filter((b) => !b.pouredAt);
   const nextToPour = [...unpoured].sort((a, b) => a.position - b.position)[0];
   const cellarCount = party.bottles.filter((b) => b.bottleId !== null).length;
@@ -186,11 +190,16 @@ export default function PartyConsolePage() {
                   {bottle.revealedAt || !active || showPourList ? (
                     <div>
                       <PartyWineCard wine={bottle.wine} />
-                      {bottle.broughtBy && (
-                        <div className="mt-1 text-sm">
-                          <Badge variant="secondary">
-                            Guest bottle · {bottle.broughtBy}
-                          </Badge>
+                      {(bottle.broughtBy || bottle.needsDetails) && (
+                        <div className="mt-1 flex flex-wrap gap-1.5 text-sm">
+                          {bottle.broughtBy && (
+                            <Badge variant="secondary">
+                              Guest bottle · {bottle.broughtBy}
+                            </Badge>
+                          )}
+                          {bottle.needsDetails && (
+                            <Badge variant="destructive">Needs details</Badge>
+                          )}
                         </div>
                       )}
                     </div>
@@ -200,6 +209,11 @@ export default function PartyConsolePage() {
                       <div className="text-sm">
                         Open the pour list to see it
                       </div>
+                      {bottle.needsDetails && (
+                        <Badge variant="destructive" className="mt-1">
+                          Needs details
+                        </Badge>
+                      )}
                     </div>
                   )}
                 </div>
@@ -272,6 +286,60 @@ export default function PartyConsolePage() {
                   )}
                 </div>
               </div>
+              {bottle.needsDetails && party.status !== "cancelled" && (
+                <div className="mt-3 space-y-2">
+                  {fillingId === bottle.id ? (
+                    <>
+                      <GuestBottlePicker
+                        mode="details"
+                        onAdd={async (input) => {
+                          if ("mystery" in input) return "Pick a wine first.";
+                          const res = await fillBottleDetails(
+                            party.id,
+                            bottle.id,
+                            "newWine" in input
+                              ? { newWine: input.newWine }
+                              : { wineId: input.wineId, year: input.year },
+                          );
+                          if (!res.ok) return res.error.message;
+                          queryClient.setQueryData(
+                            ["party", partyId],
+                            res.data,
+                          );
+                          for (const key of [
+                            "parties",
+                            "tastingNotes",
+                            "wantToBuy",
+                            "palate",
+                            "bottles",
+                            "vintages",
+                            "wines",
+                            "winemakers",
+                          ])
+                            queryClient.invalidateQueries({ queryKey: [key] });
+                          setFillingId(null);
+                          return null;
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFillingId(null)}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setFillingId(bottle.id)}
+                    >
+                      <PenLine /> Fill in details
+                    </Button>
+                  )}
+                </div>
+              )}
               {reviews.length > 0 && (
                 <ul className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
                   {reviews.map((r) => (
@@ -354,7 +422,7 @@ export default function PartyConsolePage() {
           <ConfirmButton
             label="Finish party"
             title="Finish the tasting?"
-            description={`${cellarCount ? `Your ${cellarCount} cellar bottle(s) will be marked drunk on ${party.date}. ` : ""}${guestCount ? `${guestCount} guest bottle(s) will be recorded as drunk, with who brought them. ` : ""}Your blind ratings will be saved as tasting notes, and the guest link stops working.${unrevealed ? ` ${unrevealed} bottle(s) haven't been revealed yet.` : ""}${unpoured.length ? ` ${unpoured.length} bottle(s) were never poured: yours go back to their bins and unopened guest bottles are removed.` : ""}`}
+            description={`${cellarCount ? `Your ${cellarCount} cellar bottle(s) will be marked drunk on ${party.date}. ` : ""}${guestCount ? `${guestCount} guest bottle(s) will be recorded as drunk, with who brought them. ` : ""}Your blind ratings will be saved as tasting notes, and the guest link stops working.${mystery ? ` ${mystery} mystery bottle(s) still need details: fill them in afterwards and your notes for them are saved then.` : ""}${unrevealed ? ` ${unrevealed} bottle(s) haven't been revealed yet.` : ""}${unpoured.length ? ` ${unpoured.length} bottle(s) were never poured: yours go back to their bins and unopened guest bottles are removed.` : ""}`}
             confirmLabel="Finish"
             onConfirm={() => run(() => finishParty(party.id))}
           />

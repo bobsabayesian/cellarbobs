@@ -7,6 +7,7 @@ import type {
   MyPartyReviews,
   CreateParty,
   GuestBottleInput,
+  BottleDetailsInput,
   WantToBuyWine,
   PartyDetail,
   PartyGuesses,
@@ -30,6 +31,12 @@ import {
 import { insertReturning } from "@utils/query-helpers.js";
 import { foldKey } from "../import/normalise/text.js";
 import { commitWithin, type CreatedRecords } from "./import.controller.js";
+
+/** Records a guest bottle made, plus whether it's a mystery awaiting details. */
+type GuestRecords = CreatedRecords & { mystery?: boolean };
+
+/** Winemaker for mystery bottles, until the host says who made them. */
+const UNKNOWN_PRODUCER = "Unknown producer";
 import { allowedTags, getTagGroups } from "../party/tags.js";
 import {
   describeAnswers,
@@ -241,6 +248,42 @@ async function resolveVintage(
   return { id: created.id, created: true };
 }
 
+/** A placeholder wine and vintage for a bottle nobody can name yet. */
+async function createMysteryWine(
+  trx: Trx,
+  party: Pick<TastingParty, "title">,
+  created: GuestRecords,
+): Promise<number> {
+  let maker = await trx
+    .selectFrom("winemaker")
+    .select("id")
+    .where("name", "=", UNKNOWN_PRODUCER)
+    .executeTakeFirst();
+  if (!maker) {
+    maker = await insertReturning(trx, "winemaker", {
+      name: UNKNOWN_PRODUCER,
+    });
+    created.winemakerId = maker.id;
+  }
+  const wine = await insertReturning(trx, "wine", {
+    name: `Mystery bottle (${party.title})`,
+    wineMakerId: maker.id,
+    regionId: null,
+    type: "red",
+  });
+  created.wineId = wine.id;
+  const vintage = await insertReturning(trx, "vintage", {
+    wineId: wine.id,
+    year: null,
+    drinkFrom: null,
+    drinkUntil: null,
+  });
+  created.vintageId = vintage.id;
+  await markSeen("wine", wine.id, trx);
+  await markSeen("vintage", vintage.id, trx);
+  return vintage.id;
+}
+
 type GuestEntry = {
   bottleId: number;
   vintageId: number;
@@ -255,14 +298,18 @@ type GuestEntry = {
  */
 async function createGuestBottle(
   trx: Trx,
-  party: Pick<TastingParty, "date">,
+  party: Pick<TastingParty, "date" | "title">,
   input: GuestBottleInput,
   // The host's personal storage, so the bottle is seen by whoever sees the party.
   storageId: number | null,
 ): Promise<GuestEntry> {
-  const created: CreatedRecords = {};
+  const created: GuestRecords = {};
   let vintageId: number;
-  if ("newWine" in input) {
+  if ("mystery" in input) {
+    // A placeholder wine, replaced when the host fills in the details.
+    vintageId = await createMysteryWine(trx, party, created);
+    created.mystery = true;
+  } else if ("newWine" in input) {
     const result = await commitWithin(trx, input.newWine);
     vintageId = result.vintageId;
     Object.assign(created, result.createdRecords);
@@ -302,6 +349,11 @@ async function removeGuestBottle(
 ) {
   // Cascades to the party bottle and its reviews.
   await trx.deleteFrom("bottle").where("id", "=", bottleId).execute();
+  await cleanupCreated(trx, createdRecords);
+}
+
+/** Deletes the wine records a party made, but only those nothing else uses. */
+async function cleanupCreated(trx: Trx, createdRecords: string | null) {
   const created = parseJson<CreatedRecords>(createdRecords, {});
   const uses = async (
     table:
@@ -591,10 +643,19 @@ export async function list(): Promise<PartySummary[]> {
     count("partyGuest"),
     count("partyReview"),
   ]);
+  const needsDetails = new Map<number, number>();
+  for (const row of await db
+    .selectFrom("partyBottle")
+    .select(["partyId", "createdRecords"])
+    .where("createdRecords", "is not", null)
+    .execute())
+    if (parseJson<GuestRecords>(row.createdRecords, {}).mystery)
+      needsDetails.set(row.partyId, (needsDetails.get(row.partyId) ?? 0) + 1);
   return parties.map((row) => {
     const party = toParty(row);
     return {
       ...party,
+      needsDetailsCount: needsDetails.get(party.id) ?? 0,
       bottleCount: bottles.get(party.id) ?? 0,
       guestCount: guests.get(party.id) ?? 0,
       reviewCount: reviews.get(party.id) ?? 0,
@@ -620,6 +681,7 @@ export async function getDetail(
       "revealedAt",
       "broughtBy",
       "wantToBuy",
+      "createdRecords",
     ])
     .where("partyId", "=", id)
     .orderBy("position")
@@ -639,9 +701,11 @@ export async function getDetail(
   return {
     ...party,
     formatDef: party.format ? getFormat(party.format) : null,
-    bottles: bottles.map((b) => ({
+    bottles: bottles.map(({ createdRecords, ...b }) => ({
       ...b,
       wantToBuy: Number(b.wantToBuy) === 1,
+      needsDetails:
+        parseJson<GuestRecords>(createdRecords, {}).mystery === true,
       wine: wineOf(b),
     })),
     guests: guests.map((g) => ({
@@ -756,6 +820,35 @@ export function hostNoteText(
   return lines.join("\n\n");
 }
 
+/** Saves the host's blind review of a bottle as a regular tasting note. */
+async function createHostNote(
+  trx: Trx,
+  party: TastingParty,
+  detail: PartyDetail,
+  partyBottleId: number,
+) {
+  const hostGuestIds = new Set(
+    detail.guests.filter((g) => g.isHost).map((g) => g.id),
+  );
+  const bottle = detail.bottles.find((b) => b.id === partyBottleId);
+  if (!bottle) return;
+  for (const review of detail.reviews) {
+    if (review.partyBottleId !== partyBottleId) continue;
+    if (!hostGuestIds.has(review.guestId)) continue;
+    if (review.score === null && !review.notes.trim()) continue;
+    await insertReturning(trx, "tastingNote", {
+      vintageId: bottle.wine.vintageId,
+      authorId: party.hostUserId,
+      date: `${party.date}T20:00:00.000Z`,
+      score:
+        review.score === null
+          ? 0
+          : Math.min(10, Math.max(0, Math.round(review.score / 10))),
+      notes: hostNoteText(review, detail, bottle.label),
+    });
+  }
+}
+
 export async function finish(id: number): Promise<PartyDetail> {
   await db.transaction().execute(async (trx) => {
     const party = await requireParty(id, trx);
@@ -800,25 +893,11 @@ export async function finish(id: number): Promise<PartyDetail> {
         .execute();
     }
 
-    // The host's blind reviews become regular tasting notes.
-    const hostGuestIds = new Set(
-      detail.guests.filter((g) => g.isHost).map((g) => g.id),
-    );
-    for (const review of detail.reviews) {
-      if (!hostGuestIds.has(review.guestId)) continue;
-      if (review.score === null && !review.notes.trim()) continue;
-      const bottle = detail.bottles.find((b) => b.id === review.partyBottleId)!;
-      await insertReturning(trx, "tastingNote", {
-        vintageId: bottle.wine.vintageId,
-        authorId: party.hostUserId,
-        date: `${party.date}T20:00:00.000Z`,
-        score:
-          review.score === null
-            ? 0
-            : Math.min(10, Math.max(0, Math.round(review.score / 10))),
-        notes: hostNoteText(review, detail, bottle.label),
-      });
-    }
+    // The host's blind reviews become regular tasting notes. A mystery
+    // bottle waits: its note is made when the host fills in the details.
+    for (const bottle of detail.bottles)
+      if (!bottle.needsDetails)
+        await createHostNote(trx, party, detail, bottle.id);
 
     await trx
       .updateTable("tastingParty")
@@ -858,6 +937,66 @@ export async function cancel(id: number): Promise<PartyDetail> {
       .set({ status: "cancelled", finishedAt: new Date().toISOString() })
       .where("id", "=", id)
       .execute();
+  });
+  return getDetail(id);
+}
+
+/**
+ * Says what a mystery bottle turned out to be: swaps its placeholder wine
+ * for a wine from the list or a new one, on the party bottle and the
+ * inventory bottle, and removes the placeholder. If the party is already
+ * finished, the host's note for the bottle is saved now, with the real wine.
+ */
+export async function fillDetails(
+  id: number,
+  partyBottleId: number,
+  input: BottleDetailsInput,
+): Promise<PartyDetail> {
+  await db.transaction().execute(async (trx) => {
+    const party = await requireParty(id, trx);
+    if (party.status === "cancelled")
+      throw new PartyError("Party is cancelled", 409);
+    const row = await trx
+      .selectFrom("partyBottle")
+      .select(["id", "bottleId", "createdRecords"])
+      .where("id", "=", partyBottleId)
+      .where("partyId", "=", id)
+      .executeTakeFirst();
+    if (!row) throw new PartyError("Bottle is not in this party", 404);
+    if (!parseJson<GuestRecords>(row.createdRecords, {}).mystery)
+      throw new PartyError("This bottle already has its details", 409);
+
+    const created: GuestRecords = {};
+    let vintageId: number;
+    if ("newWine" in input) {
+      const result = await commitWithin(trx, input.newWine);
+      vintageId = result.vintageId;
+      Object.assign(created, result.createdRecords);
+    } else {
+      const vintage = await resolveVintage(trx, input);
+      vintageId = vintage.id;
+      if (vintage.created) created.vintageId = vintage.id;
+    }
+    await trx
+      .updateTable("partyBottle")
+      .set({
+        vintageId,
+        createdRecords: Object.keys(created).length
+          ? JSON.stringify(created)
+          : null,
+      })
+      .where("id", "=", partyBottleId)
+      .execute();
+    if (row.bottleId !== null)
+      await trx
+        .updateTable("bottle")
+        .set({ vintageId })
+        .where("id", "=", row.bottleId)
+        .execute();
+    await cleanupCreated(trx, row.createdRecords);
+
+    if (party.status === "finished")
+      await createHostNote(trx, party, await getDetail(id, trx), partyBottleId);
   });
   return getDetail(id);
 }
@@ -943,7 +1082,8 @@ export async function publicView(token: string): Promise<PublicParty> {
         return {
           label: b.label,
           revealed,
-          wine: revealed ? b.wine : null,
+          // A mystery bottle's placeholder wine is never shown to guests.
+          wine: revealed && !b.needsDetails ? b.wine : null,
           broughtBy: revealed ? b.broughtBy : null,
           scores: revealed
             ? detail.reviews
