@@ -62,6 +62,7 @@ import { StorageHierarchyDisplay } from "@/components/storage/StorageHierarchyDi
 import { VintageDisplay } from "@/components/wine/VintageDisplay";
 import { BottleSizeIcon } from "@/components/bottles/BottleSizeIcon";
 import { ViewButton } from "@/components/buttons/ViewButton";
+import { MobileBottleList } from "@/components/bottles/MobileBottleList";
 import { getRegions } from "@/lib/api/regions";
 import { getCountries } from "@/lib/api/countries";
 
@@ -596,35 +597,56 @@ export default function BottlesPage() {
   return (
     <section>
       <PageHeader title="Bottles" />
-      <DataTable<Bottle>
-        data={visibleBottles}
-        columns={columns}
-        filterColumnName="vintage"
-        defaultSortColumn="purchaseDate"
-        filters={filters}
-        onBulkDelete={canEditAny ? handleBulkDelete : undefined}
-        bulkEditFields={canEditAny ? bulkEditFields : undefined}
-        onBulkEdit={canEditAny ? handleBulkEdit : undefined}
-        buttons={[
-          ...(hideSetting && consumedCount > 0 && !searchParams.get("status")
-            ? [
-                <Button
-                  key="consumed"
-                  variant="outline"
-                  aria-pressed={!hide}
-                  onClick={() => setIncludeConsumed(hide ? true : null)}
-                >
-                  {hide ? `Show consumed (${consumedCount})` : "Hide consumed"}
-                </Button>,
-              ]
-            : []),
-          <AddButton
-            onClick={async () => router.push("/bottles/new")}
-            subject="Bottle"
-            key="add"
-          />,
-        ]}
-      />
+      {/* Phones get cards grouped by wine and vintage; the table is for wider screens. */}
+      <div className="md:hidden">
+        <MobileBottleList
+          bottles={visibleBottles}
+          vintages={vintages}
+          wines={wines}
+          winemakers={winemakers}
+          storages={storages}
+          consumedCount={consumedCount}
+          showingConsumed={!hide}
+          onToggleConsumed={
+            hideSetting && !searchParams.get("status")
+              ? () => setIncludeConsumed(hide ? true : null)
+              : undefined
+          }
+        />
+      </div>
+      <div className="hidden md:block">
+        <DataTable<Bottle>
+          data={visibleBottles}
+          columns={columns}
+          filterColumnName="vintage"
+          defaultSortColumn="purchaseDate"
+          filters={filters}
+          onBulkDelete={canEditAny ? handleBulkDelete : undefined}
+          bulkEditFields={canEditAny ? bulkEditFields : undefined}
+          onBulkEdit={canEditAny ? handleBulkEdit : undefined}
+          buttons={[
+            ...(hideSetting && consumedCount > 0 && !searchParams.get("status")
+              ? [
+                  <Button
+                    key="consumed"
+                    variant="outline"
+                    aria-pressed={!hide}
+                    onClick={() => setIncludeConsumed(hide ? true : null)}
+                  >
+                    {hide
+                      ? `Show consumed (${consumedCount})`
+                      : "Hide consumed"}
+                  </Button>,
+                ]
+              : []),
+            <AddButton
+              onClick={async () => router.push("/bottles/new")}
+              subject="Bottle"
+              key="add"
+            />,
+          ]}
+        />
+      </div>
     </section>
   );
 }

@@ -4,7 +4,7 @@ Planned work for this fork, roughly in priority order. Each item notes what it t
 
 ## Phone views of the lists
 
-The **Wines** list shows cards on phones (search, quick filters, and an Add note button on each card; wines with several vintages open to pick one), and the main area no longer stretches wider than the screen. **Bottles** (and Storages) are still the desktop table on phones and scroll sideways. Plan for Bottles: cards grouped by wine and vintage ("Barolo 2017 ×3 · bins 12, 13") that expand to the individual bottles, quick filters, no selection or bulk actions on phones, and the same Add note button.
+The **Wines** and **Bottles** lists show cards on phones. Wines: search, quick filters and an Add note button on each card (wines with several vintages open to pick one). Bottles: one card per wine and vintage ("Barolo 2017 ×3", with its bins and drinking window) that opens to the individual bottles, plus search (including bins), quick filters (ready to drink, status, type, consumed), an add button, and Add note. No selection or bulk actions on phones. The main area no longer stretches wider than the screen. **Storages** is still the table and scrolls sideways on phones.
 
 ## Done: tasting notes in party formats
 
