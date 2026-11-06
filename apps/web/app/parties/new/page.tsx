@@ -35,7 +35,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -140,14 +139,9 @@ export default function NewPartyPage() {
     );
 
   const filtered = fuzzyFilter(choices, filter, (c) => c.search);
-  const matching = new Set(filtered.items.map((c) => c.id));
-  // Picked bottles stay visible whatever the filter says.
-  const visible = choices.filter(
-    (c) => selected.includes(c.id) || matching.has(c.id),
-  );
-  const groups = new Map<string, Choice[]>();
-  for (const c of visible)
-    groups.set(c.storage, [...(groups.get(c.storage) ?? []), c]);
+  const cellarMatches = filter.trim()
+    ? filtered.items.filter((c) => !selected.includes(c.id)).slice(0, 8)
+    : [];
 
   const toggle = (id: number) =>
     setSelected((s) =>
@@ -288,70 +282,46 @@ export default function NewPartyPage() {
       </fieldset>
 
       <div className="space-y-3">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-semibold">Cellar bottles</h2>
-            <p className="text-sm text-muted-foreground">
-              Stored bottles only. {selected.length} selected. They&apos;ll show
-              as “Out (In Tasting)” until the party ends.
-            </p>
-          </div>
-          <Input
-            className="max-w-xs"
-            placeholder="Filter: Bordeaux, nebbiolo, Terroir…"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-        </div>
-
-        {filtered.fuzzy && filtered.items.length > 0 && (
-          <p className="text-sm text-muted-foreground">
-            Nothing matches “{filter}” exactly. Close matches:
-          </p>
-        )}
-        <div className="max-h-[28rem] overflow-y-auto rounded-lg border">
-          {[...groups].map(([storage, items]) => (
-            <div key={storage}>
-              <div className="sticky top-0 bg-muted px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {storage}
-              </div>
-              {items.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-muted/50"
-                >
-                  <Checkbox
-                    checked={selected.includes(c.id)}
-                    onCheckedChange={() => toggle(c.id)}
-                    disabled={
-                      !selected.includes(c.id) && total >= PARTY_MAX_BOTTLES
-                    }
-                  />
-                  <span className="text-sm">{c.name}</span>
-                </label>
-              ))}
-            </div>
-          ))}
-          {visible.length === 0 && (
-            <p className="p-4 text-sm text-muted-foreground">
-              No stored bottles match.
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-3">
         <div>
-          <h2 className="font-semibold">Guest bottles</h2>
+          <h2 className="font-semibold">Bottles</h2>
           <p className="text-sm text-muted-foreground">
-            Bottles guests are bringing, from your wine list or new. Each gets a
-            bottle in your inventory marked “Out (In Tasting)”, recorded as
+            Cellar bottles show as “Out (In Tasting)” until the party ends.
+            Bottles guests bring get a bottle in your inventory too, recorded as
             drunk when the party ends. Cancelling removes the bottle and any
-            wine the party created. You can also add them during the party.
+            wine the party created. You can also add bottles during the party.
           </p>
         </div>
-        {guests.length > 0 && (
+        {(selected.length > 0 || guests.length > 0) && (
           <ul className="divide-y rounded-lg border">
+            {selected.map((id) => {
+              const c = choices.find((x) => x.id === id);
+              if (!c) return null;
+              return (
+                <li
+                  key={`c${id}`}
+                  className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
+                >
+                  <span>
+                    {c.name}
+                    <Badge variant="secondary" className="ml-2">
+                      cellar
+                    </Badge>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {c.storage}
+                    </span>
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Remove ${c.name}`}
+                    onClick={() => toggle(id)}
+                  >
+                    <X />
+                  </Button>
+                </li>
+              );
+            })}
             {guests.map((g, i) => (
               <li
                 key={i}
@@ -362,6 +332,11 @@ export default function NewPartyPage() {
                   {"newWine" in g.input && (
                     <Badge variant="secondary" className="ml-2">
                       new wine
+                    </Badge>
+                  )}
+                  {"mystery" in g.input && (
+                    <Badge variant="secondary" className="ml-2">
+                      blind
                     </Badge>
                   )}
                   <span className="text-muted-foreground">
@@ -385,6 +360,46 @@ export default function NewPartyPage() {
         )}
         {total < PARTY_MAX_BOTTLES && (
           <GuestBottlePicker
+            cellar={
+              <div className="space-y-1">
+                <Label htmlFor="cellar-filter">From your cellar</Label>
+                <Input
+                  id="cellar-filter"
+                  placeholder="Search stored bottles: Bordeaux, nebbiolo, Terroir…"
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                />
+                {filtered.fuzzy && cellarMatches.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Close matches:
+                  </p>
+                )}
+                {cellarMatches.length > 0 && (
+                  <ul className="max-h-56 overflow-y-auto rounded-md border">
+                    {cellarMatches.map((c) => (
+                      <li key={c.id}>
+                        <button
+                          type="button"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                          onClick={() => toggle(c.id)}
+                        >
+                          {c.name}
+                          <span className="text-muted-foreground">
+                            {" "}
+                            · {c.storage}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {filter.trim() && cellarMatches.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No stored bottles match.
+                  </p>
+                )}
+              </div>
+            }
             onAdd={(input, label) => {
               setGuests((list) => [...list, { input, label }]);
               return null;

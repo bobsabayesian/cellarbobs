@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Download, HelpCircle, Loader2, PenLine, Plus } from "lucide-react";
 import type { GuestBottleInput, ImportPreview } from "@cellarboss/types";
 import { useApiQuery } from "@/hooks/use-api-query";
@@ -21,6 +21,8 @@ type GuestBottlePickerProps = {
    * "details" says what a mystery bottle was: just the wine.
    */
   mode?: "add" | "details";
+  /** Shown in the "From your wine list" tab: pick bottles already stored. */
+  cellar?: ReactNode;
   /** Returns an error message, or null when the bottle was added. */
   onAdd: (
     bottle: GuestBottleInput,
@@ -44,9 +46,10 @@ type NewWineState =
 export function GuestBottlePicker({
   onAdd,
   mode: purpose = "add",
+  cellar,
 }: GuestBottlePickerProps) {
   const details = purpose === "details";
-  const submitLabel = details ? "Save details" : "Add guest bottle";
+  const submitLabel = details ? "Save details" : "Add bottle";
   const [mode, setMode] = useState<"list" | "new" | "mystery">("list");
   const [broughtBy, setBroughtBy] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +88,7 @@ export function GuestBottlePicker({
             [
               ["list", "From your wine list"],
               ["new", "New wine"],
-              ...(details ? [] : [["mystery", "Mystery bottle"] as const]),
+              ...(details ? [] : [["mystery", "Blind bottle"] as const]),
             ] as const
           ).map(([value, label]) => (
             <button
@@ -108,7 +111,15 @@ export function GuestBottlePicker({
       </div>
 
       {mode === "list" ? (
-        <FromWineList onAdd={add} submitLabel={submitLabel} />
+        <div className="space-y-4">
+          {cellar}
+          {cellar && (
+            <p className="text-sm text-muted-foreground">
+              Or a guest&apos;s bottle of a wine on your list:
+            </p>
+          )}
+          <FromWineList onAdd={add} submitLabel={submitLabel} />
+        </div>
       ) : mode === "new" ? (
         <NewWine onAdd={add} submitLabel={submitLabel} />
       ) : (
@@ -120,9 +131,9 @@ export function GuestBottlePicker({
           </p>
           <Button
             variant="outline"
-            onClick={() => add({ mystery: true }, "Mystery bottle")}
+            onClick={() => add({ mystery: true }, "Blind bottle")}
           >
-            <HelpCircle /> Add mystery bottle
+            <HelpCircle /> Add blind bottle
           </Button>
         </div>
       )}
