@@ -26,11 +26,15 @@ CORS=http://localhost:3000
 UPLOAD_DIR=/path/to/uploads
 MCP_ENABLED=false
 IMPORT_PROXY_URL=http://proxy.internal:3128
+GEMINI_API_KEY=your-gemini-key
+ENRICH_DELAY_MS=2000
 ```
 
 `CORS` is a comma-separated list of web origins allowed to call the API. It defaults to `http://localhost:3000`. The same list is passed to Better Auth as its trusted origins, along with the mobile app's `cellarboss://` scheme (`MOBILE_APP_ORIGIN` in `src/utils/auth.ts`). The mobile app sends that scheme as its `Origin`, so it works without being added to `CORS`. Browsers can't send a custom-scheme origin, so trusting it doesn't weaken CSRF protection for the web frontend.
 
 `IMPORT_PROXY_URL` is optional. When set, pages fetched for "Import from URL" go through that proxy (`http://`, `https://` or `socks5://`). Without it, the standard `HTTPS_PROXY` / `HTTP_PROXY` / `NO_PROXY` variables are honoured. The backend refuses to connect to private, loopback and link-local addresses itself, including for `NO_PROXY` hosts. Through a proxy it checks the address before sending the request, but the proxy makes the connection, so a proxy you configure should also block those ranges.
+
+`GEMINI_API_KEY` is optional. It turns on looking up wine data online: an admin can look up a vintage's critic scores, review summaries and technical details with a Gemini model and Google Search, on the vintage page, for all of a wine's vintages on the wine page, or for every vintage from System Settings. The model is the `enrichModel` setting (`gemini-flash-latest` by default). `ENRICH_DELAY_MS` is the pause between vintages in a run of every vintage (2000 by default). Each lookup sends the producer, wine name, vintage, type, region and grapes to Google; nothing else leaves the server.
 
 ## Scripts
 

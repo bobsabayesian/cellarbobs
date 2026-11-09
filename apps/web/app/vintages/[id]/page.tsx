@@ -18,6 +18,7 @@ import { DeleteButton } from "@/components/buttons/DeleteButton";
 import { WineDetailCard } from "@/components/detail/WineDetailCard";
 import { TastingNotesSection } from "@/components/tasting-notes/TastingNotesSection";
 import { VintageImageGallery } from "@/components/images/VintageImageGallery";
+import { VintageProfileCard } from "@/components/vintage/VintageProfileCard";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { queryGate } from "@/lib/functions/query-gate";
 import { useState } from "react";
@@ -225,6 +226,8 @@ export default function ViewVintagePage() {
               </>
             )}
           </RelatedResourceSection>
+
+          <VintageProfileCard vintage={vintage} />
         </div>
 
         <div className="flex flex-col gap-6">

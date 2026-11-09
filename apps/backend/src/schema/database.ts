@@ -196,6 +196,42 @@ export interface UserTable {
   banExpires: Date | string | null;
 }
 
+export interface VintageProfileTable {
+  id: Generated<number>;
+  vintageId: number;
+  status: "ok" | "not_found" | "error";
+  model: string;
+  /** JSON of WineProfileData. */
+  profile: string | null;
+  /** JSON of EnrichSource[]. */
+  sources: string | null;
+  error: string | null;
+  fetchedAt: string;
+}
+
+export interface VintageScoreTable {
+  id: Generated<number>;
+  vintageId: number;
+  critic: string;
+  score: string;
+  points: number | null;
+  sourceUrl: string | null;
+}
+
+export interface EnrichRunTable {
+  id: Generated<number>;
+  status: "running" | "done" | "cancelled" | "failed" | "interrupted";
+  /** 0/1 on every dialect. */
+  onlyMissing: number;
+  total: number;
+  done: number;
+  failed: number;
+  startedBy: string;
+  startedAt: string;
+  finishedAt: string | null;
+  error: string | null;
+}
+
 // Database interface for Kysely
 export interface Database {
   bottle: BottleTable;
@@ -222,4 +258,7 @@ export interface Database {
   shareLink: ShareLinkTable;
   shareGuest: ShareGuestTable;
   shareMark: ShareMarkTable;
+  vintageProfile: VintageProfileTable;
+  vintageScore: VintageScoreTable;
+  enrichRun: EnrichRunTable;
 }

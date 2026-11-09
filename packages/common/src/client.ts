@@ -19,6 +19,7 @@ import { importResource } from "./resources/import";
 import { partiesResource } from "./resources/parties";
 import { shareResource } from "./resources/share";
 import { accessResource } from "./resources/access";
+import { enrichResource } from "./resources/enrich";
 
 export type ApiClientConfig = {
   request: RequestFn;
@@ -47,6 +48,7 @@ export function createApiClient(config: ApiClientConfig) {
     parties: partiesResource(request),
     share: shareResource(request),
     access: accessResource(request),
+    enrich: enrichResource(request),
   };
 }
 

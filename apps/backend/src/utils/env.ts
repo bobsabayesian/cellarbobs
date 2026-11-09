@@ -26,6 +26,13 @@ export const env = z
     // Folder of tasting format files (beginner.json, advanced.json). Missing
     // files are written with the defaults; edits apply without a restart.
     PARTY_FORMATS_DIR: z.string().optional(),
+    // Google Gemini API key for looking up wine data online (scores,
+    // reviews, technical details). The lookup is off without it. The model
+    // is chosen in System Settings.
+    GEMINI_API_KEY: z.string().optional(),
+    // Pause between vintages in an admin's "look up all" run, so a big
+    // cellar doesn't hit Gemini's rate limits.
+    ENRICH_DELAY_MS: z.coerce.number().default(2000),
     UPLOAD_DIR: z
       .string()
       .refine((p) => existsSync(p), {

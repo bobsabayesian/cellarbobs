@@ -19,6 +19,7 @@ import { registerImportRoutes } from "./import.routes";
 import { registerPartyRoutes } from "./parties.routes";
 import { registerShareRoutes } from "./share.routes";
 import { registerAccessRoutes } from "./access.routes";
+import { registerEnrichRoutes } from "./enrich.routes";
 
 export function registerRoutes(app: OpenAPIHono) {
   registerBottleRoutes(app);
@@ -45,4 +46,5 @@ export function registerRoutes(app: OpenAPIHono) {
   registerPartyRoutes(app);
   registerShareRoutes(app);
   registerAccessRoutes(app);
+  registerEnrichRoutes(app);
 }

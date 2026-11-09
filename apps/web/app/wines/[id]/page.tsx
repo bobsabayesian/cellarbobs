@@ -18,6 +18,7 @@ import { RelatedResourceSection } from "@/components/detail/RelatedResourceSecti
 import { RelatedResourceItem } from "@/components/detail/RelatedResourceItem";
 import { EditButton } from "@/components/buttons/EditButton";
 import { DeleteButton } from "@/components/buttons/DeleteButton";
+import { LookupVintagesButton } from "@/components/buttons/LookupVintagesButton";
 import { Badge } from "@/components/ui/badge";
 import { TastingNotesSection } from "@/components/tasting-notes/TastingNotesSection";
 import { WineImageGallery } from "@/components/images/WineImageGallery";
@@ -129,6 +130,7 @@ export default function ViewWinePage() {
         title="Wine Details"
         actions={
           <>
+            <LookupVintagesButton vintages={sortedVintages} />
             <EditButton
               onEdit={async () => {
                 router.push(`/wines/${wineId}/edit`);

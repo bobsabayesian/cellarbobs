@@ -80,6 +80,20 @@ export type {
   GuessAccuracy,
 } from "./party";
 export type {
+  WineProfileData,
+  EnrichSource,
+  VintageScore,
+  VintageProfileStatus,
+  VintageProfile,
+  VintageEnrichment,
+  WindowEstimate,
+  EnrichResult,
+  EnrichRunStatus,
+  EnrichRun,
+  EnrichStatus,
+  FillWindowsResult,
+} from "./enrich";
+export type {
   ShareLinkState,
   ShareLink,
   ShareLinkSummary,

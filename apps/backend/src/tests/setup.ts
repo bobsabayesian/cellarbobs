@@ -66,6 +66,9 @@ export async function runMigrations(db: Kysely<Database>): Promise<void> {
 // Clean all table data (FK-safe order: children first)
 export async function cleanDatabase(db: Kysely<Database>): Promise<void> {
   const tables = [
+    "enrichRun",
+    "vintageScore",
+    "vintageProfile",
     "storageAccess",
     "catalogSeen",
     "shareMark",

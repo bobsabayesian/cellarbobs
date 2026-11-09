@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page/PageHeader";
 import { useSettings, useUpdateSetting } from "@/hooks/use-settings";
 import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
+import { EnrichPanel } from "@/components/settings/EnrichPanel";
 
 /** Friendlier labels for settings that have one. */
 const SETTING_INFO: Record<string, { label: string; description: string }> = {
@@ -12,6 +13,16 @@ const SETTING_INFO: Record<string, { label: string; description: string }> = {
     label: "Hide consumed bottles",
     description:
       "Leave drunk, sold and gifted bottles out of everyday views. Lists still offer a way to show them.",
+  },
+  enrichModel: {
+    label: "Online lookup model",
+    description:
+      "The Gemini model that looks wines up, e.g. gemini-flash-latest (cheap) or gemini-pro-latest (more accurate).",
+  },
+  enrichFillWindows: {
+    label: "Fill drinking windows from lookups",
+    description:
+      "When a vintage has no drinking window, use the one found online. Never overwrites a window you set.",
   },
 };
 import { authClient } from "@/lib/auth-client";
@@ -74,10 +85,15 @@ export default function SettingsAdminPage() {
                 <div className="font-medium text-foreground">
                   {SETTING_INFO[key]?.label ?? key}
                 </div>
+                {SETTING_INFO[key] && (
+                  <div className="text-sm text-muted-foreground">
+                    {SETTING_INFO[key].description}
+                  </div>
+                )}
                 <div className="text-sm text-muted-foreground">
-                  {SETTING_INFO[key] ? (
-                    SETTING_INFO[key].description
-                  ) : typeof value === "boolean" ? (
+                  {SETTING_INFO[key] &&
+                  typeof value === "boolean" ? null : typeof value ===
+                    "boolean" ? (
                     value ? (
                       "On"
                     ) : (
@@ -118,6 +134,10 @@ export default function SettingsAdminPage() {
           ))}
         </div>
       )}
+
+      <div className="mt-6">
+        <EnrichPanel />
+      </div>
     </section>
   );
 }

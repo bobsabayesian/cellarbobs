@@ -87,6 +87,7 @@ export default defineConfig({
           { text: "MCP Server", link: "/features/mcp" },
           { text: "Import from a Link", link: "/features/import" },
           { text: "Tasting Parties", link: "/features/parties" },
+          { text: "Online Wine Data", link: "/features/online-data" },
         ],
       },
     ],
