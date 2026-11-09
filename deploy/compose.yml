@@ -38,6 +38,9 @@ services:
       # Tasting formats (beginner.json, advanced.json). Edit the files in
       # deploy/data/tasting-formats; changes apply without a restart.
       PARTY_FORMATS_DIR: /config/tasting-formats
+      # Online wine data (scores, reviews, details) via Gemini. Set the key
+      # in .env; the lookup is off while it's empty.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     ports:
       # Host 5050 (5000 is left free for the dev backend).
       - "127.0.0.1:${MCP_PORT:-5050}:5000"
