@@ -31,6 +31,7 @@ import { DetailRow } from "@/components/detail/DetailRow";
 import { EditButton } from "@/components/buttons/EditButton";
 import { DeleteButton } from "@/components/buttons/DeleteButton";
 import { ChangeStatusButton } from "@/components/buttons/ChangeStatusButton";
+import { DrinkBottleDialog } from "@/components/bottles/DrinkBottleDialog";
 import { MoveBottleButton } from "@/components/buttons/MoveBottleButton";
 import { WineDetailCard } from "@/components/detail/WineDetailCard";
 import { TastingNotesSection } from "@/components/tasting-notes/TastingNotesSection";
@@ -169,6 +170,15 @@ export default function ViewBottlePage() {
         actions={
           access.canEdit(bottle.storageId) && (
             <>
+              <DrinkBottleDialog
+                bottles={[bottle]}
+                name={
+                  wine
+                    ? `${wine.name} ${vintage?.year ?? "NV"}`
+                    : `Bottle #${bottle.id}`
+                }
+                wineId={wine?.id}
+              />
               <ChangeStatusButton
                 currentStatus={bottle.status}
                 onChangeStatus={async (newStatus) => {

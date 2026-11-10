@@ -27,6 +27,7 @@ import {
 import { WINE_TYPE_COLORS } from "@/lib/constants/wine-colouring";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { DrinkBottleDialog } from "./DrinkBottleDialog";
 
 type Props = {
   bottles: Bottle[];
@@ -34,6 +35,8 @@ type Props = {
   wines: Wine[];
   winemakers: WineMaker[];
   storages: Storage[];
+  /** Whether the user may change bottles in this storage. */
+  canEdit?: (storageId: number | null) => boolean;
   /** Consumed bottles are hidden by default; offer a switch when some are. */
   consumedCount: number;
   showingConsumed: boolean;
@@ -73,6 +76,7 @@ export function MobileBottleList({
   wines,
   winemakers,
   storages,
+  canEdit = () => true,
   consumedCount,
   showingConsumed,
   onToggleConsumed,
@@ -342,6 +346,23 @@ export function MobileBottleList({
                 >
                   <NotebookPen className="h-4 w-4" /> Add note
                 </button>
+                <DrinkBottleDialog
+                  variant="button"
+                  name={`${g.wine.name} ${g.vintage.year ?? "NV"}`}
+                  wineId={g.wine.id}
+                  bottles={g.bottles
+                    .filter((b) => canEdit(b.storageId))
+                    .map((b) => ({
+                      ...b,
+                      label: [
+                        b.path || "No storage",
+                        b.size !== "standard" && formatBottleSize(b.size),
+                        b.status !== "stored" && formatStatus(b.status),
+                      ]
+                        .filter(Boolean)
+                        .join(" · "),
+                    }))}
+                />
                 {g.bottles.length > 1 && (
                   <button
                     type="button"

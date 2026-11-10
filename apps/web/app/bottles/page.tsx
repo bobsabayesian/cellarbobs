@@ -35,6 +35,7 @@ import { EditButton } from "@/components/buttons/EditButton";
 import { DeleteButton } from "@/components/buttons/DeleteButton";
 import { MoveBottleButton } from "@/components/buttons/MoveBottleButton";
 import { ChangeStatusButton } from "@/components/buttons/ChangeStatusButton";
+import { DrinkBottleDialog } from "@/components/bottles/DrinkBottleDialog";
 import { AddButton } from "@/components/buttons/AddButton";
 import { PageHeader } from "@/components/page/PageHeader";
 import { useApiQuery } from "@/hooks/use-api-query";
@@ -495,6 +496,16 @@ export default function BottlesPage() {
                 currentStatus={row.original.status}
                 onChangeStatus={(s) => handleChangeStatus(row.original, s)}
               />
+              <DrinkBottleDialog
+                bottles={[row.original]}
+                name={getVintageName(
+                  row.original.vintageId,
+                  vintageMap,
+                  wineMap,
+                  winemakerMap,
+                )}
+                wineId={vintageMap.get(row.original.vintageId)?.wineId}
+              />
             </>
           )}
           <IconButton
@@ -605,6 +616,7 @@ export default function BottlesPage() {
           wines={wines}
           winemakers={winemakers}
           storages={storages}
+          canEdit={access.canEdit}
           consumedCount={consumedCount}
           showingConsumed={!hide}
           onToggleConsumed={
